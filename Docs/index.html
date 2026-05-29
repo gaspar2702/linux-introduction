@@ -11,15 +11,15 @@
         <aside class="sidebar">
             <h2>CTF Academy</h2>
             <div id="user-info">
-                <p>User: <span id="username-display">guest</span></p>
+                <p>User: <span id="username-display">student</span></p>
                 <p>XP: <span id="xp-display">0</span></p>
             </div>
             <div id="level-info">
                 <h3 id="level-title">Nivel 0</h3>
-                <p id="level-objective">Objetivo: Aprender comandos básicos (help, ls, pwd)</p>
+                <p id="level-objective">Cargando...</p>
                 <div class="hints">
-                    <button onclick="showHint(1)">Hint 1</button>
-                    <p id="hint-1-text" class="hidden"></p>
+                    <button onclick="showHint()">Pista</button>
+                    <p id="hint-text" class="hidden"></p>
                 </div>
             </div>
         </aside>
@@ -27,7 +27,7 @@
         <main class="terminal-container">
             <div id="terminal-output"></div>
             <div class="input-line">
-                <span class="prompt">student@linux-ctf:~$</span>
+                <span class="prompt" id="prompt-text">student@ctf:~$</span>
                 <input type="text" id="terminal-input" autocomplete="off" autofocus>
             </div>
         </main>

@@ -1,4 +1,4 @@
-const BACKEND_URL = "https://script.google.com/macros/s/AKfycbwKNxAeiwnCbfPzzJU2y7McEPvmthrPXRiQbwn3FnJ3s9tuym_ed8LNx82DclE0__7x/exec"; 
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycby5KhDXiU14ig-zYwXya-eWUC5afEEitedzfhOkEkcbzldawlFHzM6vEXa1DiKZJwad/exec"; 
 let currentUser = "student";
 let currentLevel = 0;
 let userXP = 0;
@@ -23,7 +23,7 @@ const levels = [
 ];
 
 function loadLevel(levelIndex) {
-    if (!levels[levelIndex]) return printToTerminal("\n¡CTF COMPLETADO!");
+    if (!levels[levelIndex]) return printToTerminal("\n[!] CTF COMPLETADO. ¡Felicidades!");
     
     currentLevel = levelIndex;
     initEnvironment(levelIndex);
@@ -35,38 +35,38 @@ function loadLevel(levelIndex) {
     document.getElementById("hint-text").textContent = level.hint;
     document.getElementById("hint-text").classList.add("hidden");
     
-    printToTerminal(`\n--- Entorno reiniciado: Iniciando ${level.title} ---`);
+    printToTerminal(`\n--- Entorno listo: Iniciando ${level.title} ---`);
 }
 
 function showHint() {
     document.getElementById(`hint-text`).classList.remove("hidden");
 }
 
+function avanzarNivel() {
+    userXP += 100;
+    document.getElementById("xp-display").textContent = userXP;
+    loadLevel(currentLevel + 1);
+}
+
 function saveProgress(flag) {
-    printToTerminal("[SISTEMA] Verificando flag...", false);
+    printToTerminal("\n[SISTEMA] ¡Flag detectada! Guardando...", false);
     
     fetch(BACKEND_URL, {
         method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain" },
         body: JSON.stringify({ user: currentUser, level: currentLevel, flag: flag })
-    }).then(() => {
-        userXP += 100;
-        document.getElementById("xp-display").textContent = userXP;
-        printToTerminal("[SISTEMA] ¡Correcto! Avanzando al siguiente nivel.\n", false);
-        loadLevel(currentLevel + 1);
-    }).catch((error) => {
-        userXP += 100;
-        document.getElementById("xp-display").textContent = userXP;
-        printToTerminal("[SISTEMA] Guardado local. Avanzando al siguiente nivel.\n", false);
-        loadLevel(currentLevel + 1);
+    })
+    .then(response => response.text())
+    .then(() => avanzarNivel())
+    .catch(() => {
+        printToTerminal("[SISTEMA] Error de red. Avanzando localmente.", false);
+        avanzarNivel();
     });
 }
 
 document.addEventListener('commandExecuted', (e) => {
     const output = e.detail.output;
     const currentFlag = levels[currentLevel]?.flag;
-    if (currentFlag && output.includes(currentFlag)) {
+    if (currentFlag && output && output.includes(currentFlag)) {
         saveProgress(currentFlag);
     }
 });

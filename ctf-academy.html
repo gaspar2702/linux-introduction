@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Linux CTF Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e13;
+  --bg2: #0e1520;
+  --bg3: #111927;
+  --border: #1e2d3d;
+  --green: #39d353;
+  --green-dim: #1a6128;
+  --cyan: #58a6ff;
+  --yellow: #e3b341;
+  --red: #f85149;
+  --orange: #d29922;
+  --purple: #bc8cff;
+  --text: #c9d1d9;
+  --text-dim: #6e7681;
+  --text-muted: #3d444d;
+  --prompt-color: #39d353;
+  --flag-color: #f0883e;
+  --scanline-opacity: 0.03;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,var(--scanline-opacity)) 2px, rgba(0,0,0,var(--scanline-opacity)) 4px);
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* TOP BAR */
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 16px;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-brand {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.topbar-sep { color: var(--text-muted); }
+
+.topbar-level {
+  font-size: 12px;
+  color: var(--cyan);
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.xp-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.xp-bar {
+  width: 80px;
+  height: 4px;
+  background: var(--bg3);
+  border-radius: 2px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.xp-bar-fill {
+  height: 100%;
+  background: var(--yellow);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+
+.xp-label {
+  color: var(--yellow);
+  font-size: 11px;
+  min-width: 50px;
+  text-align: right;
+}
+
+/* MAIN LAYOUT */
+.main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 280px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.sidebar-section {
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+}
+
+.sidebar-section-title {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.mission-badge {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--orange);
+  border: 1px solid var(--orange);
+  padding: 2px 6px;
+  border-radius: 2px;
+  margin-bottom: 10px;
+}
+
+.mission-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--cyan);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+
+.mission-obj {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* LEVELS LIST */
+.levels-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.level-item {
+  padding: 7px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: default;
+  font-size: 11px;
+  border-left: 2px solid transparent;
+  transition: background 0.15s;
+}
+
+.level-item.completed {
+  color: var(--text-dim);
+}
+
+.level-item.completed .level-dot {
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+}
+
+.level-item.active {
+  background: rgba(88,166,255,0.07);
+  border-left-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.level-item.active .level-dot {
+  background: var(--cyan);
+  box-shadow: 0 0 6px var(--cyan);
+  animation: pulse-dot 1.5s infinite;
+}
+
+.level-item.locked {
+  color: var(--text-muted);
+}
+
+.level-item.locked .level-dot {
+  background: var(--text-muted);
+}
+
+.level-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.level-name { flex: 1; }
+
+.level-check {
+  font-size: 10px;
+  color: var(--green);
+}
+
+/* SIDEBAR BOTTOM */
+.sidebar-bottom {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-hint {
+  background: transparent;
+  border: 1px solid var(--yellow);
+  color: var(--yellow);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.15s;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-hint:hover {
+  background: rgba(227,179,65,0.1);
+}
+
+.hint-box {
+  display: none;
+  background: rgba(227,179,65,0.07);
+  border: 1px solid rgba(227,179,65,0.3);
+  border-radius: 2px;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--yellow);
+  line-height: 1.7;
+}
+
+.hint-box.visible { display: block; }
+
+/* TERMINAL */
+.terminal-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.terminal-titlebar {
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.term-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.term-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.term-dot.red { background: #ff5f57; }
+.term-dot.yellow { background: #febc2e; }
+.term-dot.green { background: #28c840; }
+
+.term-title {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-left: 4px;
+}
+
+.terminal-output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px 4px;
+  font-size: 13px;
+  line-height: 1.7;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.t-line { white-space: pre-wrap; word-break: break-all; }
+.t-prompt { color: var(--prompt-color); font-weight: 600; }
+.t-input { color: var(--text); }
+.t-output { color: var(--text); }
+.t-system { color: var(--purple); }
+.t-error { color: var(--red); }
+.t-success { color: var(--green); font-weight: 600; }
+.t-flag { color: var(--flag-color); font-weight: 700; letter-spacing: 1px; }
+.t-info { color: var(--cyan); }
+.t-dir { color: var(--cyan); font-weight: 600; }
+.t-exec { color: var(--green); font-weight: 600; }
+
+.terminal-input-area {
+  display: flex;
+  align-items: center;
+  padding: 8px 20px 14px;
+  gap: 0;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg2);
+}
+
+#prompt-display {
+  color: var(--prompt-color);
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+
+#terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  outline: none;
+  caret-color: var(--green);
+}
+
+/* FLAG CELEBRATION */
+.flag-flash {
+  position: fixed;
+  inset: 0;
+  background: rgba(57,211,83,0.05);
+  pointer-events: none;
+  z-index: 200;
+  animation: flag-flash-anim 0.8s ease-out forwards;
+}
+
+@keyframes flag-flash-anim {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* COMPLETION SCREEN */
+.completion-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,14,19,0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  display: none;
+}
+
+.completion-box {
+  border: 1px solid var(--green);
+  padding: 40px 60px;
+  text-align: center;
+  max-width: 500px;
+}
+
+.completion-box h1 {
+  font-size: 28px;
+  color: var(--green);
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.completion-box p {
+  color: var(--text-dim);
+  font-size: 13px;
+  margin-bottom: 24px;
+  line-height: 1.7;
+}
+
+.completion-box .final-xp {
+  font-size: 48px;
+  color: var(--yellow);
+  font-weight: 700;
+}
+
+/* BOOT ANIMATION */
+.boot-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 60px;
+  font-size: 12px;
+  line-height: 2;
+  color: var(--green);
+}
+
+.boot-line { opacity: 0; animation: boot-in 0.1s ease forwards; }
+@keyframes boot-in { to { opacity: 1; } }
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 6px var(--cyan); }
+  50% { box-shadow: 0 0 12px var(--cyan), 0 0 20px rgba(88,166,255,0.3); }
+}
+
+.notification {
+  position: fixed;
+  top: 50px;
+  right: 20px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--green);
+  padding: 10px 16px;
+  font-size: 12px;
+  color: var(--text);
+  z-index: 250;
+  max-width: 280px;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: all 0.3s ease;
+  line-height: 1.5;
+}
+
+.notification.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+</style>
+</head>
+<body>
+
+<!-- BOOT OVERLAY -->
+<div class="boot-overlay" id="boot-overlay"></div>
+
+<!-- COMPLETION OVERLAY -->
+<div class="completion-overlay" id="completion-overlay">
+  <div class="completion-box">
+    <h1>[ MISIÓN COMPLETA ]</h1>
+    <p>Has superado todos los niveles del CTF.<br>Ahora conoces los fundamentos de la terminal Linux.</p>
+    <div class="final-xp" id="final-xp">1600 XP</div>
+    <p style="margin-top:8px; font-size:11px; color: var(--yellow);">— XP TOTAL —</p>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notification" id="notification"></div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-brand">CTF Academy</span>
+    <span class="topbar-sep">//</span>
+    <span class="topbar-level" id="topbar-level">Nivel 0</span>
+  </div>
+  <div class="topbar-right">
+    <div class="xp-bar-wrap">
+      <span>XP</span>
+      <div class="xp-bar"><div class="xp-bar-fill" id="xp-bar-fill"></div></div>
+      <span class="xp-label" id="xp-label">0 / 1600</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="mission-badge" id="level-badge">NIVEL 0</div>
+      <div class="mission-title" id="level-title">Cargando...</div>
+      <div class="mission-obj" id="level-obj"></div>
+    </div>
+
+    <div class="levels-list" id="levels-list"></div>
+
+    <div class="sidebar-bottom">
+      <button class="btn-hint" id="btn-hint" onclick="toggleHint()">
+        ▸ MOSTRAR PISTA
+      </button>
+      <div class="hint-box" id="hint-box"></div>
+    </div>
+  </aside>
+
+  <!-- TERMINAL -->
+  <div class="terminal-wrap">
+    <div class="terminal-titlebar">
+      <div class="term-dots">
+        <div class="term-dot red"></div>
+        <div class="term-dot yellow"></div>
+        <div class="term-dot green"></div>
+      </div>
+      <span class="term-title" id="term-title">student@ctf: ~</span>
+    </div>
+    <div class="terminal-output" id="terminal-output"></div>
+    <div class="terminal-input-area">
+      <span id="prompt-display">student@ctf:~$</span>
+      <input type="text" id="terminal-input" autocomplete="off" spellcheck="false" autofocus placeholder="escribe un comando...">
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ========== CONFIG ========== */
+const BACKEND_URL = "https://script.google.com/macros/s/AKfycby5KhDXiU14ig-zYwXya-eWUC5afEEitedzfhOkEkcbzldawlFHzM6vEXa1DiKZJwad/exec";
+const TOTAL_LEVELS = 16;
+const XP_PER_LEVEL = 100;
+
+/* ========== LEVEL DATA ========== */
+const levels = [
+  { title: "Nivel 0", name: "El Primer Paso", obj: "Lee el archivo readme con el comando correcto.", flag: "FLAG{inicio_exitoso}", hint: "Busca en Google: 'cómo mostrar el contenido de un archivo en la terminal Linux' (pista: el comando es cat)." },
+  { title: "Nivel 1", name: "Guion Maldito", obj: "Lee el archivo llamado '-' (guion).", flag: "FLAG{lectura_de_guion}", hint: "Busca en Google: 'how to cat a file named dash or hyphen in linux'. Necesitas indicar la ruta con ./." },
+  { title: "Nivel 2", name: "Nombre Raro", obj: "Lee el archivo que tiene espacios en su nombre.", flag: "FLAG{espacios_manejados}", hint: "Busca en Google: 'cómo leer un archivo con espacios en su nombre en Linux'. Usa comillas dobles alrededor del nombre." },
+  { title: "Nivel 3", name: "Lo Invisible", obj: "Encuentra y lee el archivo oculto.", flag: "FLAG{archivos_ocultos}", hint: "Busca en Google: 'listar archivos ocultos Linux'. Los archivos ocultos empiezan con un punto. Usa ls -a para verlos." },
+  { title: "Nivel 4", name: "Rutas", obj: "Explora la carpeta inhere y lee el flag.", flag: "FLAG{rutas_relativas}", hint: "Usa 'cd inhere' para entrar, luego 'ls' para ver los archivos, y 'cat' para leer." },
+  { title: "Nivel 5", name: "Aguja en el Pajar", obj: "Filtra la palabra 'millionth' en el archivo data.txt.", flag: "FLAG{grep_salva_vidas}", hint: "Busca en Google: 'comando grep Linux buscar palabra en archivo'. Uso: grep <palabra> <archivo>." },
+  { title: "Nivel 6", name: "Texto Cifrado", obj: "Decodifica el archivo b64.txt de Base64.", flag: "FLAG{base64_decodificado}", hint: "Busca en Google: 'decodificar base64 terminal Linux'. Uso: base64 -d <archivo>." },
+  { title: "Nivel 7", name: "Al Revés", obj: "Invierte el texto del archivo rev.txt.", flag: "FLAG{texto_al_reves}", hint: "Busca en Google: 'comando rev Linux invertir texto'. Uso: rev <archivo>." },
+  { title: "Nivel 8", name: "El Script", obj: "Lee el contenido del script.sh.", flag: "FLAG{scripts_basicos}", hint: "Usa el mismo comando que en el Nivel 0 — un script .sh es texto plano y se puede leer con cat." },
+  { title: "Nivel 9", name: "Ejecutar", obj: "Ejecuta el binario local ejecutable.sh.", flag: "FLAG{ejecucion_local}", hint: "Busca en Google: 'ejecutar script en directorio actual Linux'. Debes usar ./ antes del nombre." },
+  { title: "Nivel 10", name: "Permisos", obj: "Da permisos de ejecución a locked.sh y ejecútalo.", flag: "FLAG{permisos_chmod}", hint: "Busca en Google: 'chmod dar permiso ejecucion Linux'. Uso: chmod +x <archivo>, luego ./<archivo>." },
+  { title: "Nivel 11", name: "Laberinto", obj: "Navega los directorios anidados hasta encontrar el flag.", flag: "FLAG{explorador_find}", hint: "Entra a cada carpeta con cd: cd dir1, cd dir2, cd dir3. Luego cat flag." },
+  { title: "Nivel 12", name: "El Entorno", obj: "Examina las variables de entorno del sistema.", flag: "FLAG{variables_entorno}", hint: "Busca en Google: 'mostrar variables de entorno Linux'. El comando es 'env'." },
+  { title: "Nivel 13", name: "Cambio de Identidad", obj: "Cambia al usuario admin y lee su flag.txt.", flag: "FLAG{cambio_usuario}", hint: "Busca en Google: 'cambiar usuario terminal Linux substitute user'. Lee el archivo pass.txt primero." },
+  { title: "Nivel 14", name: "SSH", obj: "Conéctate por SSH al servidor indicado en server_ip.txt.", flag: "FLAG{conexion_ssh_exitosa}", hint: "Busca en Google: 'sintaxis ssh usuario@host Linux'. Formato: ssh admin@<ip>." },
+  { title: "Nivel 15", name: "Netcat", obj: "Conéctate al puerto local con netcat.", flag: "FLAG{netcat_master}", hint: "Busca en Google: 'nc netcat conectar puerto localhost'. Lee ports.txt para el puerto. Uso: nc localhost <puerto>." }
+];
+
+/* ========== FILESYSTEM ========== */
+let currentLevelData = 0;
+let currentPath = ["home", "student"];
+let envVars = {};
+let currentUser = "student";
+
+const environments = {
+  0: { home: { student: { readme: "FLAG{inicio_exitoso}" } } },
+  1: { home: { student: { "-": "FLAG{lectura_de_guion}" } } },
+  2: { home: { student: { "file with spaces": "FLAG{espacios_manejados}" } } },
+  3: { home: { student: { ".hidden": "FLAG{archivos_ocultos}", ".bash_history": "cat readme\nls -a\ncd /home", ".profile": "# user profile" } } },
+  4: { home: { student: { inhere: { "flag.txt": "FLAG{rutas_relativas}", "readme.txt": "El flag está aquí." } } } },
+  5: { home: { student: { "data.txt": Array.from({length:50}, (_,i) => i===24 ? "millionth FLAG{grep_salva_vidas}" : `linea${i}: ${Math.random().toString(36).slice(2,10)}`).join("\n") } } },
+  6: { home: { student: { "b64.txt": "RkxBR3tiYXNlNjRfZGVjb2RpZmljYWRvfQ==" } } },
+  7: { home: { student: { "rev.txt": "}saver_la_otxet{GALF" } } },
+  8: { home: { student: { "script.sh": "#!/bin/bash\necho FLAG{scripts_basicos}" } } },
+  9: { home: { student: { "ejecutable.sh": { type: "exec", content: "FLAG{ejecucion_local}", perms: "x" } } } },
+  10: { home: { student: { "locked.sh": { type: "exec", content: "FLAG{permisos_chmod}", perms: "-" }, "perms.txt": "-rw-r--r-- locked.sh" } } },
+  11: { home: { student: { dir1: { dir2: { dir3: { flag: "FLAG{explorador_find}", "info.txt": "Bien hecho, casi llegas." } } } } } },
+  12: { home: { student: { ".bashrc": "# Configuración del shell", "readme.txt": "Las variables de entorno guardan información del sistema." } } },
+  13: { home: { student: { "pass.txt": "admin123", "readme.txt": "Usa su <usuario> para cambiar de sesión." }, admin: { "flag.txt": "FLAG{cambio_usuario}", "secret.txt": "Acceso restringido." } } },
+  14: { home: { student: { "server_ip.txt": "192.168.1.100", "readme.txt": "Conéctate con SSH: ssh admin@<ip>" } } },
+  15: { home: { student: { "ports.txt": "Puerto abierto en: 3000", "readme.txt": "Usa nc para conectarte a un puerto local." } } }
+};
+
+function initEnvironment(levelId) {
+  currentLevelData = levelId;
+  currentPath = ["home", "student"];
+  currentUser = "student";
+  envVars = levelId === 12 ? { "FLAG_VAR": "FLAG{variables_entorno}", "HOME": "/home/student", "USER": "student", "SHELL": "/bin/bash", "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "es_ES.UTF-8", "TERM": "xterm-256color" } : { "HOME": "/home/student", "USER": "student", "SHELL": "/bin/bash", "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "es_ES.UTF-8" };
+}
+
+function getDir(pathArray) {
+  let current = environments[currentLevelData];
+  for (let seg of pathArray) {
+    if (!current || current[seg] === undefined) return null;
+    current = current[seg];
+  }
+  return current;
+}
+
+function getPathString() {
+  const joined = currentPath.join("/");
+  if (joined === "home/student") return "~";
+  if (joined === "home/admin") return "~";
+  return "/" + joined;
+}
+
+/* ========== COMMANDS ========== */
+const commandHistory = [];
+let historyIndex = -1;
+
+const commands = {
+  help: () => {
+    return [
+      { cls: "t-info", text: "Comandos disponibles:" },
+      { cls: "t-output", text: "  pwd          — muestra el directorio actual" },
+      { cls: "t-output", text: "  ls [-a]      — lista archivos del directorio" },
+      { cls: "t-output", text: "  cd <dir>     — cambia de directorio" },
+      { cls: "t-output", text: "  cat <file>   — muestra contenido de un archivo" },
+      { cls: "t-output", text: "  grep <p> <f> — busca patrón en archivo" },
+      { cls: "t-output", text: "  base64 -d <f>— decodifica base64" },
+      { cls: "t-output", text: "  rev <file>   — invierte texto" },
+      { cls: "t-output", text: "  chmod +x <f> — da permisos de ejecución" },
+      { cls: "t-output", text: "  ./<script>   — ejecuta un script/binario" },
+      { cls: "t-output", text: "  env           — muestra variables de entorno" },
+      { cls: "t-output", text: "  su <user>    — cambia de usuario" },
+      { cls: "t-output", text: "  ssh <user@ip>— conecta por SSH" },
+      { cls: "t-output", text: "  nc <host> <p>— conecta por netcat" },
+      { cls: "t-output", text: "  clear         — limpia la terminal" },
+      { cls: "t-output", text: "  whoami        — muestra el usuario actual" },
+      { cls: "t-output", text: "  echo <txt>   — imprime texto" },
+    ];
+  },
+
+  pwd: () => {
+    const path = currentPath.join("/");
+    return path === "home/student" || path === "home/admin" ? "/" + path : "/" + path;
+  },
+
+  whoami: () => currentUser,
+
+  echo: (args) => args.join(" "),
+
+  clear: () => {
+    document.getElementById("terminal-output").innerHTML = "";
+    return null;
+  },
+
+  ls: (args) => {
+    const showHidden = args.includes("-a") || args.includes("-la") || args.includes("-al");
+    const showLong = args.includes("-l") || args.includes("-la") || args.includes("-al");
+    const dir = getDir(currentPath);
+    if (!dir || typeof dir !== "object" || dir.type === "exec") return "ls: no es un directorio";
+
+    let files = Object.keys(dir).filter(f => showHidden || !f.startsWith("."));
+    if (showHidden) files = [".", "..", ...files];
+
+    if (showLong) {
+      const lines = [];
+      if (showHidden) lines.push("total " + files.length);
+      for (const f of files) {
+        if (f === "." || f === "..") { lines.push({ cls: "t-dir", text: `drwxr-xr-x  2 ${currentUser} ${currentUser}    4096 Jan 01 00:00 ${f}` }); continue; }
+        const entry = dir[f];
+        if (typeof entry === "object" && !entry.type) {
+          lines.push({ cls: "t-dir", text: `drwxr-xr-x  2 ${currentUser} ${currentUser}    4096 Jan 01 00:00 ${f}` });
+        } else if (entry && entry.type === "exec") {
+          const perms = entry.perms === "x" ? "-rwxr-xr-x" : "-rw-r--r--";
+          lines.push({ cls: entry.perms === "x" ? "t-exec" : "t-output", text: `${perms}  1 ${currentUser} ${currentUser}     256 Jan 01 00:00 ${f}` });
+        } else {
+          lines.push(`-rw-r--r--  1 ${currentUser} ${currentUser}     ${String(entry||"").length.toString().padStart(3)} Jan 01 00:00 ${f}`);
+        }
+      }
+      return lines;
+    }
+
+    // Color-coded output
+    const parts = files.filter(f => f !== "." && f !== "..").map(f => {
+      const entry = dir[f];
+      if (typeof entry === "object" && !entry.type) return { cls: "t-dir", text: f + "/" };
+      if (entry && entry.type === "exec") return { cls: "t-exec", text: f + "*" };
+      return f;
+    });
+    return parts.length ? parts : "(vacío)";
+  },
+
+  cd: (args) => {
+    let target = args[0] || "~";
+    if (target === "~") { currentPath = ["home", currentUser]; updatePrompt(); return null; }
+    if (target === "..") {
+      if (currentPath.length > 1) { currentPath.pop(); updatePrompt(); }
+      return null;
+    }
+    // absolute path
+    if (target.startsWith("/")) {
+      const parts = target.split("/").filter(Boolean);
+      let c = environments[currentLevelData];
+      for (const p of parts) {
+        if (!c || !c[p] || typeof c[p] !== "object" || c[p].type) return `cd: ${target}: No existe o no es un directorio`;
+        c = c[p];
+      }
+      currentPath = parts;
+      updatePrompt();
+      return null;
+    }
+    const dir = getDir(currentPath);
+    if (dir && dir[target] && typeof dir[target] === "object" && !dir[target].type) {
+      currentPath.push(target);
+      updatePrompt();
+      return null;
+    }
+    return `cd: ${target}: No existe o no es un directorio`;
+  },
+
+  cat: (args) => {
+    if (!args[0]) return "cat: falta operando\nUso: cat <archivo>";
+    
+    // join all args in case filename has spaces (after quote-stripping)
+    let target = args.join(" ");
+    
+    // Handle ./-  notation
+    if (target === "./-") target = "-";
+    // Handle path-style: strip leading ./
+    if (target.startsWith("./")) target = target.slice(2);
+
+    const dir = getDir(currentPath);
+    if (!dir) return "cat: directorio no accesible";
+    const file = dir[target];
+    if (file === undefined) return `cat: ${target}: No existe ese archivo`;
+    if (typeof file === "object" && !file.type) return `cat: ${target}: Es un directorio`;
+    if (file && file.type === "exec") {
+      if (file.perms === "x") return "ELF binary — no legible como texto. Usa ./" + target + " para ejecutarlo.";
+      return "Binario no legible. Usa chmod +x para dar permisos y luego ejecútalo.";
+    }
+    const content = String(file);
+    // Highlight flags in output
+    if (content.includes("FLAG{")) return [{ cls: "t-flag", text: content }];
+    return content;
+  },
+
+  grep: (args) => {
+    if (args.length < 2) return "Uso: grep <patrón> <archivo>";
+    const pattern = args[0];
+    const filename = args.slice(1).join(" ");
+    const dir = getDir(currentPath);
+    const file = dir && dir[filename];
+    if (!file) return `grep: ${filename}: No existe ese archivo`;
+    if (typeof file === "object") return "";
+    const lines = String(file).split("\n").filter(l => l.includes(pattern));
+    if (!lines.length) return "";
+    // Highlight matches
+    return lines.map(line => {
+      if (line.includes("FLAG{")) return { cls: "t-flag", text: line };
+      return line;
+    });
+  },
+
+  base64: (args) => {
+    if (!args.includes("-d")) return "Uso: base64 -d <archivo>";
+    const idx = args.indexOf("-d");
+    const filename = args.slice(idx + 1).join(" ");
+    if (!filename) return "Uso: base64 -d <archivo>";
+    const dir = getDir(currentPath);
+    const file = dir && dir[filename];
+    if (!file) return `base64: ${filename}: No existe ese archivo`;
+    try {
+      const decoded = atob(String(file).trim());
+      if (decoded.includes("FLAG{")) return [{ cls: "t-flag", text: decoded }];
+      return decoded;
+    } catch { return "base64: error al decodificar — ¿el archivo tiene contenido base64 válido?"; }
+  },
+
+  rev: (args) => {
+    const filename = args.join(" ");
+    if (!filename) return "Uso: rev <archivo>";
+    const dir = getDir(currentPath);
+    const file = dir && dir[filename];
+    if (!file) return `rev: ${filename}: No existe ese archivo`;
+    const reversed = String(file).split("").reverse().join("");
+    if (reversed.includes("FLAG{")) return [{ cls: "t-flag", text: reversed }];
+    return reversed;
+  },
+
+  chmod: (args) => {
+    if (args[0] !== "+x" || !args[1]) return "Uso: chmod +x <archivo>";
+    const filename = args.slice(1).join(" ");
+    const dir = getDir(currentPath);
+    if (!dir) return "chmod: error de directorio";
+    const file = dir[filename];
+    if (!file) return `chmod: ${filename}: No existe ese archivo`;
+    if (typeof file === "object" && file.type === "exec") {
+      file.perms = "x";
+      return `Permisos actualizados. Ahora puedes ejecutar: ./${filename}`;
+    }
+    return `chmod: ${filename}: no es un ejecutable`;
+  },
+
+  env: () => {
+    const lines = Object.entries(envVars).map(([k, v]) => {
+      if (v.includes("FLAG{")) return { cls: "t-flag", text: `${k}=${v}` };
+      return `${k}=${v}`;
+    });
+    return lines.length ? lines : "No hay variables de entorno";
+  },
+
+  su: (args) => {
+    const targetUser = args[0];
+    if (!targetUser) return "Uso: su <usuario>";
+    if (targetUser === "admin" && currentLevelData === 13) {
+      const dir = environments[13].home.student;
+      const pass = dir["pass.txt"];
+      currentUser = "admin";
+      currentPath = ["home", "admin"];
+      updatePrompt();
+      return [
+        { cls: "t-system", text: `Contraseña: ${pass}` },
+        { cls: "t-success", text: `Sesión iniciada como admin.` }
+      ];
+    }
+    if (targetUser === "root") return "su: autenticación fallida. Acceso denegado.";
+    return `su: ${targetUser}: autenticación fallida`;
+  },
+
+  ssh: (args) => {
+    if (!args[0]) return "Uso: ssh usuario@host";
+    if (args[0] === "admin@192.168.1.100" && currentLevelData === 14) {
+      return [
+        { cls: "t-system", text: "Connecting to 192.168.1.100..." },
+        { cls: "t-system", text: "admin@192.168.1.100's password: ●●●●●●" },
+        { cls: "t-success", text: "Welcome to Ubuntu 22.04 LTS" },
+        { cls: "t-flag", text: "FLAG{conexion_ssh_exitosa}" }
+      ];
+    }
+    return [
+      { cls: "t-error", text: `ssh: connect to host ${args[0]} port 22: Connection refused` }
+    ];
+  },
+
+  nc: (args) => {
+    if (args.length < 2) return "Uso: nc <host> <puerto>";
+    if (args[0] === "localhost" && args[1] === "3000" && currentLevelData === 15) {
+      return [
+        { cls: "t-system", text: "Conectado a localhost puerto 3000." },
+        { cls: "t-system", text: "Servidor CTF v1.0 — Bienvenido." },
+        { cls: "t-flag", text: "FLAG{netcat_master}" }
+      ];
+    }
+    return `nc: connect to ${args[0]} port ${args[1]}: Connection refused`;
+  }
+};
+
+function executeCommand(input) {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  // Parse respecting quotes
+  const argsMatch = trimmed.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g);
+  if (!argsMatch) return null;
+  const parts = argsMatch.map(a => a.replace(/^["']|["']$/g, ''));
+  const cmd = parts[0];
+  const args = parts.slice(1);
+
+  // Execute scripts
+  if (cmd.startsWith("./")) {
+    const scriptName = cmd.slice(2);
+    const dir = getDir(currentPath);
+    const file = dir && dir[scriptName];
+    if (!file) return `bash: ${cmd}: No existe ese archivo o directorio`;
+    if (typeof file !== "object" || file.type !== "exec") return `bash: ${cmd}: No es ejecutable`;
+    if (file.perms !== "x") return `bash: ${cmd}: Permiso denegado. Usa: chmod +x ${scriptName}`;
+    if (file.content.includes("FLAG{")) return [{ cls: "t-flag", text: file.content }];
+    return file.content;
+  }
+
+  if (commands[cmd]) return commands[cmd](args);
+
+  // Common mistakes / helpful suggestions
+  if (cmd === "cat" && args[0] && args[0].includes(" ") && !input.includes('"')) {
+    return `cat: No existe '${args[0]}'. Si el nombre tiene espacios, usa comillas: cat "${args.join(" ")}"`;
+  }
+  if (["python", "python3", "bash", "sh", "nano", "vim", "vi", "man", "apt", "sudo"].includes(cmd)) {
+    return `${cmd}: comando no disponible en este entorno simulado. Usa 'help' para ver los comandos.`;
+  }
+  if (cmd === "dir") return `¿Quisiste decir 'ls'? Este es Linux, no Windows 😄`;
+  if (cmd === "type") return `¿Quisiste decir 'cat'? Usa cat para leer archivos.`;
+
+  return `${cmd}: orden no encontrada. Escribe 'help' para ver los comandos disponibles.`;
+}
+
+/* ========== STATE ========== */
+let currentLevel = 0;
+let userXP = 0;
+let hintVisible = false;
+let completedLevels = new Set();
+
+/* ========== UI ========== */
+function updatePrompt() {
+  const path = getPathString();
+  const promptText = `${currentUser}@ctf:${path}$`;
+  document.getElementById("prompt-display").textContent = promptText;
+  document.getElementById("term-title").textContent = `${currentUser}@ctf: ${path}`;
+}
+
+function buildLevelsList() {
+  const list = document.getElementById("levels-list");
+  list.innerHTML = "";
+  levels.forEach((lv, i) => {
+    const div = document.createElement("div");
+    div.className = "level-item" + (completedLevels.has(i) ? " completed" : i === currentLevel ? " active" : " locked");
+    div.id = "level-item-" + i;
+    div.innerHTML = `<div class="level-dot"></div><span class="level-name">${lv.title}: ${lv.name}</span>${completedLevels.has(i) ? '<span class="level-check">✓</span>' : ''}`;
+    list.appendChild(div);
+  });
+}
+
+function printLine(text, cls = "t-output") {
+  const out = document.getElementById("terminal-output");
+  const div = document.createElement("div");
+  div.className = "t-line " + cls;
+  div.textContent = text;
+  out.appendChild(div);
+  out.scrollTop = out.scrollHeight;
+}
+
+function printLines(result) {
+  if (result === null || result === undefined) return;
+  const items = Array.isArray(result) ? result : [result];
+  for (const item of items) {
+    if (typeof item === "string") {
+      item.split("\n").forEach(line => printLine(line, "t-output"));
+    } else if (typeof item === "object" && item.cls) {
+      item.text.split("\n").forEach(line => printLine(line, item.cls));
+    }
+  }
+}
+
+function printCommandLine(input) {
+  const out = document.getElementById("terminal-output");
+  const div = document.createElement("div");
+  div.className = "t-line";
+  div.innerHTML = `<span class="t-prompt">${document.getElementById("prompt-display").textContent}</span> <span class="t-input">${escapeHtml(input)}</span>`;
+  out.appendChild(div);
+  out.scrollTop = out.scrollHeight;
+}
+
+function escapeHtml(str) {
+  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function showNotification(msg, type = "success") {
+  const el = document.getElementById("notification");
+  el.style.borderLeftColor = type === "success" ? "var(--green)" : type === "error" ? "var(--red)" : "var(--yellow)";
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 3500);
+}
+
+function toggleHint() {
+  hintVisible = !hintVisible;
+  const box = document.getElementById("hint-box");
+  const btn = document.getElementById("btn-hint");
+  box.classList.toggle("visible", hintVisible);
+  btn.textContent = (hintVisible ? "▾ OCULTAR PISTA" : "▸ MOSTRAR PISTA");
+}
+
+function flashSuccess() {
+  const el = document.createElement("div");
+  el.className = "flag-flash";
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+
+function loadLevel(idx) {
+  if (idx >= levels.length) {
+    // CTF complete
+    document.getElementById("final-xp").textContent = userXP + " XP";
+    document.getElementById("completion-overlay").style.display = "flex";
+    return;
+  }
+  currentLevel = idx;
+  initEnvironment(idx);
+  updatePrompt();
+
+  const lv = levels[idx];
+  document.getElementById("level-badge").textContent = lv.title.toUpperCase();
+  document.getElementById("level-title").textContent = lv.name;
+  document.getElementById("level-obj").textContent = lv.obj;
+  document.getElementById("hint-box").textContent = lv.hint;
+  document.getElementById("topbar-level").textContent = lv.title;
+
+  hintVisible = false;
+  document.getElementById("hint-box").classList.remove("visible");
+  document.getElementById("btn-hint").textContent = "▸ MOSTRAR PISTA";
+
+  buildLevelsList();
+  document.getElementById("levels-list").querySelector("#level-item-" + idx)?.scrollIntoView({ block: "nearest" });
+
+  // Print level banner
+  const out = document.getElementById("terminal-output");
+  const sep = document.createElement("div");
+  sep.className = "t-line t-info";
+  sep.innerHTML = `\n┌─── ${lv.title.toUpperCase()}: ${lv.name} ${"─".repeat(Math.max(0, 40 - lv.name.length))}┐\n│ Objetivo: ${lv.obj}\n└${"─".repeat(52)}┘`;
+  out.appendChild(sep);
+  out.scrollTop = out.scrollHeight;
+}
+
+function advanceLevel() {
+  completedLevels.add(currentLevel);
+  userXP += XP_PER_LEVEL;
+  const pct = (userXP / (TOTAL_LEVELS * XP_PER_LEVEL)) * 100;
+  document.getElementById("xp-bar-fill").style.width = pct + "%";
+  document.getElementById("xp-label").textContent = userXP + " / " + (TOTAL_LEVELS * XP_PER_LEVEL);
+  flashSuccess();
+  showNotification("✓ FLAG correcta! +" + XP_PER_LEVEL + " XP", "success");
+  setTimeout(() => loadLevel(currentLevel + 1), 1200);
+}
+
+function saveProgress(flag) {
+  printLine("", "t-system");
+  printLine("[ SISTEMA ] Flag detectada. Guardando progreso...", "t-system");
+  fetch(BACKEND_URL, {
+    method: "POST",
+    body: JSON.stringify({ user: "student", level: currentLevel, flag })
+  })
+  .then(r => r.text())
+  .then(() => advanceLevel())
+  .catch(() => {
+    printLine("[ SISTEMA ] Modo offline — avanzando localmente.", "t-system");
+    advanceLevel();
+  });
+}
+
+function checkOutput(output) {
+  const flag = levels[currentLevel]?.flag;
+  if (!flag) return;
+  const check = (s) => typeof s === "string" && s.includes(flag);
+  const found = Array.isArray(output)
+    ? output.some(item => check(typeof item === "object" ? item.text : item))
+    : check(String(output));
+  if (found) saveProgress(flag);
+}
+
+/* ========== INPUT HANDLING ========== */
+const input = document.getElementById("terminal-input");
+
+input.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    const val = input.value;
+    input.value = "";
+    historyIndex = -1;
+    if (!val.trim()) return;
+    commandHistory.unshift(val);
+    if (commandHistory.length > 100) commandHistory.pop();
+    printCommandLine(val);
+    const result = executeCommand(val);
+    printLines(result);
+    checkOutput(result);
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    if (historyIndex < commandHistory.length - 1) {
+      historyIndex++;
+      input.value = commandHistory[historyIndex];
+      setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
+    }
+  } else if (e.key === "ArrowDown") {
+    e.preventDefault();
+    if (historyIndex > 0) {
+      historyIndex--;
+      input.value = commandHistory[historyIndex];
+    } else {
+      historyIndex = -1;
+      input.value = "";
+    }
+  } else if (e.key === "Tab") {
+    e.preventDefault();
+    // Tab completion
+    const val = input.value;
+    const parts = val.split(" ");
+    const partial = parts[parts.length - 1].replace(/^["']/, "");
+    if (partial) {
+      const dir = getDir(currentPath);
+      if (dir) {
+        const matches = Object.keys(dir).filter(k => k.startsWith(partial));
+        if (matches.length === 1) {
+          parts[parts.length - 1] = matches[0].includes(" ") ? `"${matches[0]}"` : matches[0];
+          input.value = parts.join(" ");
+        } else if (matches.length > 1) {
+          printCommandLine(val);
+          printLine(matches.join("  "), "t-output");
+        }
+      }
+    }
+  } else if (e.key === "l" && e.ctrlKey) {
+    e.preventDefault();
+    document.getElementById("terminal-output").innerHTML = "";
+  } else if (e.key === "c" && e.ctrlKey) {
+    e.preventDefault();
+    printCommandLine(input.value + "^C");
+    input.value = "";
+  }
+});
+
+// Keep focus on input
+document.addEventListener("click", () => input.focus());
+
+/* ========== BOOT SEQUENCE ========== */
+const bootLines = [
+  { text: "BIOS v2.0 — Linux CTF Academy", delay: 0 },
+  { text: "Cargando kernel... ████████████ OK", delay: 120 },
+  { text: "Montando sistema de archivos... OK", delay: 240 },
+  { text: "Iniciando servicios... OK", delay: 360 },
+  { text: "Configurando entorno CTF... OK", delay: 480 },
+  { text: "Cargando niveles [16/16]... OK", delay: 600 },
+  { text: "", delay: 720 },
+  { text: "Bienvenido a Linux CTF Academy", delay: 800, cls: "color: #39d353; font-weight:700; font-size:14px" },
+  { text: "Tipo: 'help' para ver los comandos disponibles.", delay: 920 },
+];
+
+function boot() {
+  const overlay = document.getElementById("boot-overlay");
+  overlay.innerHTML = "";
+  bootLines.forEach(({ text, delay, cls }) => {
+    const div = document.createElement("div");
+    div.className = "boot-line";
+    div.style.animationDelay = delay + "ms";
+    if (cls) div.style.cssText += cls;
+    div.textContent = text;
+    overlay.appendChild(div);
+  });
+  setTimeout(() => {
+    overlay.style.transition = "opacity 0.5s";
+    overlay.style.opacity = "0";
+    setTimeout(() => {
+      overlay.style.display = "none";
+      loadLevel(0);
+      printLine("Escribe 'help' para ver todos los comandos disponibles.", "t-info");
+      printLine("Usa ↑ ↓ para navegar el historial de comandos.", "t-info");
+      printLine("Usa TAB para autocompletar nombres de archivo.", "t-info");
+      printLine("", "t-output");
+      input.focus();
+    }, 500);
+  }, 1400);
+}
+
+boot();
+</script>
+</body>
+</html>

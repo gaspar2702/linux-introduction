@@ -97,7 +97,6 @@ const commands = {
 };
 
 function executeCommand(input) {
-    // Parser que respeta comillas para nombres con espacios: cat "file with spaces"
     const argsMatch = input.match(/(?:[^\s"]+|"[^"]*")+/g);
     if (!argsMatch) return "";
     
@@ -105,7 +104,6 @@ function executeCommand(input) {
     const cmd = parts[0];
     const args = parts.slice(1);
 
-    // Soporte para ejecución ./
     if (cmd.startsWith("./")) {
         const scriptName = cmd.replace("./", "");
         const file = getDir(currentPath)[scriptName];

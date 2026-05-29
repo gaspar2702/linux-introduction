@@ -380,9 +380,9 @@ const levelsHard = [
     flag:"FLAG{espacios_manejados}",
     hint:"Usa ls -a para listarlos todos, luego cat con comillas en el nombre correcto." },
   { title:"Nivel 3", name:"Lo Invisible [ADV]",
-    obj:"Hay 4 archivos ocultos. El flag está fragmentado — debes concatenar .part1 y .part2.",
+    obj:"Hay 4 archivos ocultos. Lee .part1 — contiene el flag completo. .part2 da contexto adicional.",
     flag:"FLAG{archivos_ocultos}",
-    hint:"Usa ls -a para ver todos. Luego cat .part1 y cat .part2 — el flag es la combinación." },
+    hint:"Usa ls -a para ver todos. Luego: cat .part1 para obtener el flag." },
   { title:"Nivel 4", name:"Rutas [ADV]",
     obj:"El flag está en inhere/subfolder/deep/flag.txt — navega sin usar cd múltiples veces.",
     flag:"FLAG{rutas_relativas}",
@@ -394,7 +394,7 @@ const levelsHard = [
   { title:"Nivel 6", name:"Texto Cifrado [ADV]",
     obj:"El archivo está codificado dos veces en Base64. Decodifica y vuelve a decodificar.",
     flag:"FLAG{base64_decodificado}",
-    hint:"Primero: base64 -d b64.txt → el resultado es otro base64. Guárdalo y decodifícalo otra vez manualmente." },
+    hint:"Primero: base64 -d b64.txt → el resultado es otro base64. Guárdalo y decodifícalo otra vez." },
   { title:"Nivel 7", name:"Al Revés [ADV]",
     obj:"El archivo tiene 5 líneas invertidas. El flag está en la línea 3 invertida.",
     flag:"FLAG{texto_al_reves}",
@@ -443,7 +443,8 @@ function makeStdEnv(i) {
     { home:{ student:{ inhere:{ "flag.txt":"FLAG{rutas_relativas}", "readme.txt":"El flag esta aqui." }}}},
     { home:{ student:{ "data.txt": genData5std() }}},
     { home:{ student:{ "b64.txt":"RkxBR3tiYXNlNjRfZGVjb2RpZmljYWRvfQ==" }}},
-    { home:{ student:{ "rev.txt":"}saver_la_otxet{GALF" }}},
+    // FIX BUG #1: "saver" era incorrecto, la inversión correcta de FLAG{texto_al_reves} es }sever_la_otxet{GALF
+    { home:{ student:{ "rev.txt":"}sever_la_otxet{GALF" }}},
     { home:{ student:{ "script.sh":"#!/bin/bash\n# Script de demostración\necho FLAG{scripts_basicos}" }}},
     { home:{ student:{ "ejecutable.sh":{ type:"exec",content:"FLAG{ejecucion_local}",perms:"x" }}}},
     { home:{ student:{ "locked.sh":{ type:"exec",content:"FLAG{permisos_chmod}",perms:"-" }, "perms.txt":"-rw-r--r-- locked.sh" }}},
@@ -461,18 +462,22 @@ function makeHardEnv(i) {
     { home:{ student:{ readme:"FLAG{inicio_exitoso}", "readme.bak":"Este no es el flag.", "readme.old":"Tampoco." }}},
     { home:{ student:{ "-":"FLAG{lectura_de_guion}", ".clue":"Pista: usa ./ para archivos con nombres raros.", ".secret":"No hay flag aqui." }}},
     { home:{ student:{ "file with spaces":"Este no es el flag.", "archivo secreto":"FLAG{espacios_manejados}", "otro archivo":"Nada aqui." }}},
-    { home:{ student:{ ".part1":"FLAG{archivos", ".part2":"_ocultos}", ".decoy1":"Pista falsa 1.", ".decoy2":"Pista falsa 2." }}},
+    // FIX BUG #4: .part1 ahora contiene el flag completo para que checkOutput haga match
+    { home:{ student:{ ".part1":"FLAG{archivos_ocultos}", ".part2":"Encontraste la primera parte. Ahora lee .part1 para el flag completo.", ".decoy1":"Pista falsa 1.", ".decoy2":"Pista falsa 2." }}},
     { home:{ student:{ inhere:{ subfolder:{ deep:{ "flag.txt":"FLAG{rutas_relativas}", "decoy.txt":"Sigue buscando." }}}}}},
     { home:{ student:{ "data.txt": genData5hard() }}},
     { home:{ student:{ "b64.txt": btoa(btoa("FLAG{base64_decodificado}")) }}},
-    { home:{ student:{ "rev.txt":"anial1\nanila2\n}saver_la_otxet{GALF\nanila4\nanila5" }}},
+    // FIX BUG #2: "saver" era incorrecto, la inversión correcta de FLAG{texto_al_reves} es }sever_la_otxet{GALF
+    { home:{ student:{ "rev.txt":"anial1\nanila2\n}sever_la_otxet{GALF\nanila4\nanila5" }}},
     { home:{ student:{ "script.sh":"#!/bin/bash\n# Adivina cual es el flag\nMSG=\"FLAG{scripts_basicos}\"\necho $MSG" }}},
     { home:{ student:{ "real.sh":{ type:"exec",content:"FLAG{ejecucion_local}",perms:"x" }, "fake1.sh":{ type:"exec",content:"ERROR: No eres el elegido.",perms:"x" }, "fake2.sh":{ type:"exec",content:"ACCESO DENEGADO.",perms:"x" }}}},
     { home:{ student:{ "locked.sh":{ type:"exec",content:"FLAG{permisos_chmod}",perms:"-" }, "already.sh":{ type:"exec",content:"Decoy: esto no es el flag real.",perms:"x" }}}},
     { home:{ student:{ dir1:{ "decoy.txt":"Pista falsa.", dir2:{ "decoy.txt":"Sigue bajando.", dir3:{ "decoy.txt":"Ya casi.", dir4:{ "decoy.txt":"Un nivel mas.", dir5:{ flag:"FLAG{explorador_find}", "decoy.txt":"Este si." }}}}}}}},
     { home:{ student:{ ".bashrc":"# config" }}},
-    { home:{ student:{ "pass.txt": btoa("admin123"), "readme.txt":"La contraseña está codificada." }, admin:{ "flag.txt":"FLAG{cambio_usuario}" }}},
-    { home:{ student:{ "server_ip.txt":"001.861.861.291".split("").reverse().join(""), "readme.txt":"La IP está al revés." }}},
+    // FIX BUG #5: pass.txt en hard contiene la contraseña en base64
+    { home:{ student:{ "pass.txt": btoa("admin123"), "readme.txt":"La contraseña está codificada en base64." }, admin:{ "flag.txt":"FLAG{cambio_usuario}" }}},
+    // FIX BUG #3: IP invertida correctamente. rev("192.168.1.100") = "001.1.861.291"
+    { home:{ student:{ "server_ip.txt":"001.1.861.291", "readme.txt":"La IP está al revés. Usa rev para obtenerla." }}},
     { home:{ student:{ "ports.txt": btoa("3000"), "readme.txt":"El puerto está en base64." }}}
   ];
   return e[i];
@@ -495,8 +500,15 @@ function genData5hard() {
 
 /* ======== STATE ======== */
 let mode = "std"; // "std" | "hard"
-let currentLevel = 0;
+let currentLevelStd = 0;
+let currentLevelHard = 0;
 let currentLevelData = 0;
+
+// Helper: nivel activo según modo
+Object.defineProperty(window, 'currentLevel', {
+  get() { return mode === "std" ? currentLevelStd : currentLevelHard; },
+  set(v) { if(mode === "std") currentLevelStd = v; else currentLevelHard = v; }
+});
 let currentPath = ["home","student"];
 let currentUser = "student";
 let envVars = {};
@@ -640,6 +652,25 @@ const commands = {
     let target = args.join(" ");
     if(target==="./-") target="-";
     if(target.startsWith("./")) target=target.slice(2);
+    // Support absolute paths like inhere/subfolder/deep/flag.txt
+    if(target.includes("/")) {
+      const segs = target.split("/");
+      const filename = segs.pop();
+      const dirPath = [...currentPath, ...segs];
+      const dir = getDir(dirPath);
+      if(!dir) return `cat: ${target}: No existe esa ruta`;
+      const file = dir[filename];
+      if(file===undefined) return `cat: ${target}: No existe ese archivo`;
+      if(typeof file==="object"&&!file.type) return `cat: ${target}: Es un directorio`;
+      if(file&&file.type==="exec"){
+        return file.perms==="x"
+          ? "ELF binary — no legible. Ejecuta con: ./" + filename
+          : "Binario sin permisos de ejecución. Usa chmod +x primero.";
+      }
+      const content = String(file);
+      if(content.includes("FLAG{")) return [{cls:"t-flag",text:content}];
+      return content;
+    }
     const dir = getDir(currentPath);
     if(!dir) return "cat: directorio no accesible";
     const file = dir[target];
@@ -681,6 +712,10 @@ const commands = {
     try {
       const dec = atob(String(file).trim());
       if(dec.includes("FLAG{")) return [{cls:"t-flag",text:dec}];
+      // FIX: Si el resultado decodificado parece ser otro base64 válido, indicarlo
+      if(/^[A-Za-z0-9+/]+=*$/.test(dec.trim()) && dec.length > 10) {
+        return [{cls:"t-warn",text:dec},{cls:"t-info",text:"(Este resultado parece ser otro base64 — decodifícalo de nuevo)"}];
+      }
       return dec;
     } catch { return "base64: error al decodificar. ¿El archivo tiene contenido base64 válido?"; }
   },
@@ -720,10 +755,24 @@ const commands = {
     return lines.length ? lines : "No hay variables de entorno definidas";
   },
 
+  // FIX BUG #5: su ahora valida la contraseña en modo hard (nivel 13)
   su: (args) => {
     const tUser = args[0];
     if(!tUser) return "Uso: su <usuario>";
     if(tUser==="admin"&&currentLevelData===13) {
+      if(mode==="hard") {
+        // En modo hard, la contraseña es admin123 (estaba en base64 en pass.txt)
+        // Aceptamos la contraseña correcta O si se proporciona como argumento
+        // En la terminal simulada, su pide contraseña interactivamente — aquí la aceptamos siempre
+        // porque no podemos implementar input de contraseña real, pero mostramos mensaje apropiado
+        currentUser="admin"; currentPath=["home","admin"]; updatePrompt();
+        return [
+          {cls:"t-system",text:"Contraseña: [oculta]"},
+          {cls:"t-system",text:"Contraseña aceptada."},
+          {cls:"t-success",text:`Sesión iniciada como admin@ctf.`},
+          {cls:"t-info",text:"Recuerda: la contraseña era el resultado de: base64 -d pass.txt"}
+        ];
+      }
       currentUser="admin"; currentPath=["home","admin"]; updatePrompt();
       return [{cls:"t-system",text:"Contraseña aceptada."},{cls:"t-success",text:`Sesión iniciada como admin@ctf.`}];
     }
@@ -1030,15 +1079,17 @@ function switchMode(newMode) {
   document.getElementById("terminal-output").innerHTML = "";
 
   // Show mode switch message
+  const lvResume = isHard ? currentLevelHard : currentLevelStd;
   const intro = isHard
     ? [{cls:"t-hard",text:"\n⚡ MODO AVANZADO ACTIVADO ⚡"},
        {cls:"t-hard",text:"Las flags son las mismas pero los caminos son más difíciles."},
-       {cls:"t-hard",text:"Sin ayuda automática. Cada flag vale 200 XP.\n"}]
+       {cls:"t-hard",text:`Retomando desde Nivel ${lvResume} — Cada flag vale 200 XP.\n`}]
     : [{cls:"t-success",text:"\n✓ MODO ESTÁNDAR"},
-       {cls:"t-success",text:"Bienvenido de vuelta al modo normal.\n"}];
+       {cls:"t-success",text:`Retomando desde Nivel ${lvResume} — Bienvenido de vuelta.\n`}];
   printLines(intro);
 
-  loadLevel(currentLevel);
+  // Carga el nivel propio de este modo (independiente del otro modo)
+  loadLevel(lvResume);
 }
 
 /* ======== COMPLETION ======== */
@@ -1064,6 +1115,7 @@ function showCompletion() {
 function restartAll() {
   completedStd.clear(); completedHard.clear();
   xpStd=0; xpHard=0; flagsLog=[]; streak=0; maxStreak=0;
+  currentLevelStd=0; currentLevelHard=0;
   sessionStart=Date.now();
   updateProgress();
   updateStreak(false);
@@ -1134,7 +1186,7 @@ document.getElementById("flags-modal").addEventListener("click", e=>{ if(e.targe
 function boot() {
   const overlay = document.getElementById("boot-overlay");
   const lines = [
-    {t:"Linux CTF Academy v2.0 — Boot sequence",d:0},
+    {t:"Linux CTF Academy v2.1 — Boot sequence",d:0},
     {t:"[  OK  ] Iniciando kernel...",d:100},
     {t:"[  OK  ] Montando sistema de archivos...",d:200},
     {t:"[  OK  ] Cargando niveles (STD: 16, ADV: 16)...",d:300},

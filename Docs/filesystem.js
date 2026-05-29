@@ -2,7 +2,6 @@ let currentLevelData = 0;
 let currentPath = ["home", "student"];
 let envVars = {};
 
-// Entornos independientes por nivel
 const environments = {
     0: { "home": { "student": { "readme": "FLAG{inicio_exitoso}" } } },
     1: { "home": { "student": { "-": "FLAG{lectura_de_guion}" } } },
@@ -16,10 +15,10 @@ const environments = {
     9: { "home": { "student": { "ejecutable.sh": { type: "exec", content: "FLAG{ejecucion_local}", perms: "x" } } } },
     10: { "home": { "student": { "locked.sh": { type: "exec", content: "FLAG{permisos_chmod}", perms: "-" } } } },
     11: { "home": { "student": { "dir1": { "dir2": { "dir3": { "flag": "FLAG{explorador_find}" } } } } } },
-    12: { "home": { "student": {} } }, // Flag in ENV
+    12: { "home": { "student": {} } }, 
     13: { "home": { "student": { "pass.txt": "admin123" }, "admin": { "flag.txt": "FLAG{cambio_usuario}" } } },
-    14: { "home": { "student": { "server_ip.txt": "192.168.1.100" } } }, // Simulation for SSH
-    15: { "home": { "student": { "ports.txt": "Puerto abierto en 3000" } } } // Simulation for netcat
+    14: { "home": { "student": { "server_ip.txt": "192.168.1.100" } } }, 
+    15: { "home": { "student": { "ports.txt": "Puerto abierto en 3000" } } } 
 };
 
 function initEnvironment(levelId) {

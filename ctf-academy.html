@@ -4,544 +4,282 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Linux CTF Academy</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0a0e13;
-  --bg2: #0e1520;
-  --bg3: #111927;
-  --border: #1e2d3d;
-  --green: #39d353;
-  --green-dim: #1a6128;
-  --cyan: #58a6ff;
-  --yellow: #e3b341;
-  --red: #f85149;
-  --orange: #d29922;
-  --purple: #bc8cff;
-  --text: #c9d1d9;
-  --text-dim: #6e7681;
-  --text-muted: #3d444d;
-  --prompt-color: #39d353;
-  --flag-color: #f0883e;
-  --scanline-opacity: 0.03;
+  --bg:#0a0e13;--bg2:#0e1520;--bg3:#111927;--border:#1e2d3d;
+  --accent:#39d353;--accent2:#58a6ff;--accent3:#e3b341;
+  --red:#f85149;--orange:#d29922;--purple:#bc8cff;
+  --text:#c9d1d9;--text-dim:#6e7681;--text-muted:#3d444d;
+  --prompt-color:#39d353;--flag-color:#f0883e;
+  --mode-accent:#39d353;--mode-bg:rgba(57,211,83,0.07);--mode-border:rgba(57,211,83,0.3);
 }
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'JetBrains Mono', 'Courier New', monospace;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
+body.hard-mode {
+  --bg:#110a0a;--bg2:#160d0d;--bg3:#1a0f0f;--border:#3d1e1e;
+  --accent:#ff4444;--accent2:#ff6b6b;--accent3:#ff8c42;
+  --prompt-color:#ff4444;--flag-color:#ff8c42;
+  --mode-accent:#ff4444;--mode-bg:rgba(255,68,68,0.07);--mode-border:rgba(255,68,68,0.3);
 }
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono','Courier New',monospace;height:100vh;display:flex;flex-direction:column;overflow:hidden;transition:background 0.4s,color 0.4s}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.03) 2px,rgba(0,0,0,0.03) 4px);pointer-events:none;z-index:100}
 
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,var(--scanline-opacity)) 2px, rgba(0,0,0,var(--scanline-opacity)) 4px);
-  pointer-events: none;
-  z-index: 100;
-}
+/* TOPBAR */
+.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 14px;height:42px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;transition:background 0.4s,border-color 0.4s}
+.topbar-left{display:flex;align-items:center;gap:10px}
+.topbar-brand{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:2px;text-transform:uppercase;transition:color 0.4s}
+.topbar-sep{color:var(--text-muted)}
+.topbar-level{font-size:11px;color:var(--accent2);transition:color 0.4s}
+.topbar-right{display:flex;align-items:center;gap:14px}
 
-/* TOP BAR */
-.topbar {
-  background: var(--bg2);
-  border-bottom: 1px solid var(--border);
-  padding: 0 16px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-  gap: 16px;
-}
+/* MODE TOGGLE */
+.mode-toggle{display:flex;align-items:center;gap:0;border:1px solid var(--border);border-radius:3px;overflow:hidden;font-size:10px;letter-spacing:1px;text-transform:uppercase;flex-shrink:0}
+.mode-btn{padding:5px 10px;cursor:pointer;border:none;background:transparent;color:var(--text-dim);font-family:inherit;font-size:10px;letter-spacing:1px;text-transform:uppercase;transition:all 0.2s;white-space:nowrap}
+.mode-btn.active-std{background:rgba(57,211,83,0.15);color:#39d353}
+.mode-btn.active-hard{background:rgba(255,68,68,0.15);color:#ff4444}
+.mode-btn:hover{background:var(--bg3)}
 
-.topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+/* XP BARS */
+.xp-group{display:flex;flex-direction:column;gap:3px;font-size:10px}
+.xp-row{display:flex;align-items:center;gap:6px}
+.xp-label-tag{color:var(--text-muted);min-width:22px}
+.xp-bar{width:70px;height:3px;background:var(--bg3);border-radius:2px;overflow:hidden;border:1px solid var(--border)}
+.xp-bar-fill{height:100%;border-radius:2px;transition:width 0.5s ease}
+.xp-bar-fill.std{background:#39d353}
+.xp-bar-fill.hard{background:#ff4444}
+.xp-val{color:var(--text-dim);min-width:40px;font-size:10px}
 
-.topbar-brand {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--green);
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
+/* TIMER */
+.timer{font-size:11px;color:var(--text-dim);letter-spacing:1px;min-width:42px;text-align:right}
+.timer.warn{color:var(--orange)}
+.timer.danger{color:var(--red);animation:blink 0.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
 
-.topbar-sep { color: var(--text-muted); }
+/* STREAK */
+.streak{font-size:10px;color:var(--orange);letter-spacing:1px}
 
-.topbar-level {
-  font-size: 12px;
-  color: var(--cyan);
-}
-
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.xp-bar-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  color: var(--text-dim);
-}
-
-.xp-bar {
-  width: 80px;
-  height: 4px;
-  background: var(--bg3);
-  border-radius: 2px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-}
-
-.xp-bar-fill {
-  height: 100%;
-  background: var(--yellow);
-  border-radius: 2px;
-  transition: width 0.5s ease;
-  width: 0%;
-}
-
-.xp-label {
-  color: var(--yellow);
-  font-size: 11px;
-  min-width: 50px;
-  text-align: right;
-}
-
-/* MAIN LAYOUT */
-.main {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
+/* MAIN */
+.main{display:flex;flex:1;overflow:hidden}
 
 /* SIDEBAR */
-.sidebar {
-  width: 280px;
-  background: var(--bg2);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-  overflow: hidden;
-}
+.sidebar{width:272px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:background 0.4s,border-color 0.4s}
+.sidebar-top{border-bottom:1px solid var(--border);padding:12px 14px}
+.diff-badge{display:inline-block;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;padding:2px 7px;border-radius:2px;margin-bottom:8px;border:1px solid;transition:all 0.3s}
+.diff-badge.std{color:#39d353;border-color:#39d353}
+.diff-badge.hard{color:#ff4444;border-color:#ff4444}
+.mission-title{font-size:14px;font-weight:700;color:var(--accent2);margin-bottom:6px;line-height:1.3;transition:color 0.4s}
+.mission-obj{font-size:11px;color:var(--text);line-height:1.7}
 
-.sidebar-section {
-  border-bottom: 1px solid var(--border);
-  padding: 14px 16px;
-}
-
-.sidebar-section-title {
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-}
-
-.mission-badge {
-  display: inline-block;
-  font-size: 9px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  color: var(--orange);
-  border: 1px solid var(--orange);
-  padding: 2px 6px;
-  border-radius: 2px;
-  margin-bottom: 10px;
-}
-
-.mission-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--cyan);
-  margin-bottom: 8px;
-  line-height: 1.3;
-}
-
-.mission-obj {
-  font-size: 12px;
-  color: var(--text);
-  line-height: 1.6;
-}
+/* PROGRESS PANEL */
+.progress-panel{padding:10px 14px;border-bottom:1px solid var(--border)}
+.prog-title{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px}
+.prog-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:10px}
+.prog-tag{color:var(--text-dim);min-width:50px}
+.prog-bar-outer{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;border:1px solid var(--border)}
+.prog-bar-inner{height:100%;border-radius:3px;transition:width 0.5s ease}
+.prog-bar-inner.std{background:#39d353}
+.prog-bar-inner.hard{background:#ff4444}
+.prog-count{color:var(--text-dim);min-width:28px;text-align:right;font-size:10px}
 
 /* LEVELS LIST */
-.levels-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 8px 0;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-}
+.levels-list{flex:1;overflow-y:auto;padding:6px 0;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.level-item{padding:6px 14px;display:flex;align-items:center;gap:8px;font-size:10px;border-left:2px solid transparent;transition:background 0.15s}
+.level-item.completed-std .level-dot{background:#39d353;box-shadow:0 0 5px #39d353}
+.level-item.completed-hard .level-dot{background:#ff4444;box-shadow:0 0 5px #ff4444}
+.level-item.completed-both .level-dot{background:#f0883e;box-shadow:0 0 5px #f0883e}
+.level-item.active{background:var(--mode-bg);border-left-color:var(--accent)}
+.level-item.active .level-dot{background:var(--accent);box-shadow:0 0 5px var(--accent);animation:pulse-dot 1.5s infinite}
+.level-item.locked{color:var(--text-muted)}
+.level-item.locked .level-dot{background:var(--text-muted)}
+.level-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;transition:all 0.3s}
+.level-name{flex:1;color:inherit}
+.level-badges{display:flex;gap:3px}
+.lvl-badge{font-size:8px;padding:1px 4px;border-radius:1px}
+.lvl-badge.s{background:rgba(57,211,83,0.2);color:#39d353}
+.lvl-badge.h{background:rgba(255,68,68,0.2);color:#ff4444}
 
-.level-item {
-  padding: 7px 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: default;
-  font-size: 11px;
-  border-left: 2px solid transparent;
-  transition: background 0.15s;
-}
-
-.level-item.completed {
-  color: var(--text-dim);
-}
-
-.level-item.completed .level-dot {
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
-}
-
-.level-item.active {
-  background: rgba(88,166,255,0.07);
-  border-left-color: var(--cyan);
-  color: var(--cyan);
-}
-
-.level-item.active .level-dot {
-  background: var(--cyan);
-  box-shadow: 0 0 6px var(--cyan);
-  animation: pulse-dot 1.5s infinite;
-}
-
-.level-item.locked {
-  color: var(--text-muted);
-}
-
-.level-item.locked .level-dot {
-  background: var(--text-muted);
-}
-
-.level-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.level-name { flex: 1; }
-
-.level-check {
-  font-size: 10px;
-  color: var(--green);
-}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 5px var(--accent)}50%{box-shadow:0 0 12px var(--accent),0 0 20px rgba(57,211,83,0.2)}}
 
 /* SIDEBAR BOTTOM */
-.sidebar-bottom {
-  padding: 12px 16px;
-  border-top: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.sidebar-bottom{padding:10px 14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:7px}
+.btn-hint{background:transparent;border:1px solid var(--accent3);color:var(--accent3);font-family:inherit;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:6px 10px;cursor:pointer;border-radius:2px;transition:background 0.15s;width:100%;text-align:left}
+.btn-hint:hover{background:rgba(227,179,65,0.1)}
+.hint-box{display:none;background:rgba(227,179,65,0.07);border:1px solid rgba(227,179,65,0.25);border-radius:2px;padding:8px 10px;font-size:10px;color:var(--accent3);line-height:1.7}
+.hint-box.visible{display:block}
+.hint-box.hard-hint{background:rgba(255,100,50,0.07);border-color:rgba(255,100,50,0.25);color:#ff8c42}
+.btn-flag-log{background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:inherit;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:5px 10px;cursor:pointer;border-radius:2px;transition:background 0.15s;width:100%;text-align:left}
+.btn-flag-log:hover{background:var(--bg3)}
 
-.btn-hint {
-  background: transparent;
-  border: 1px solid var(--yellow);
-  color: var(--yellow);
-  font-family: inherit;
-  font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  padding: 7px 12px;
-  cursor: pointer;
-  border-radius: 2px;
-  transition: background 0.15s;
-  width: 100%;
-  text-align: left;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-hint:hover {
-  background: rgba(227,179,65,0.1);
-}
-
-.hint-box {
-  display: none;
-  background: rgba(227,179,65,0.07);
-  border: 1px solid rgba(227,179,65,0.3);
-  border-radius: 2px;
-  padding: 10px 12px;
-  font-size: 11px;
-  color: var(--yellow);
-  line-height: 1.7;
-}
-
-.hint-box.visible { display: block; }
+/* FLAGS LOG MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:none;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);padding:20px 24px;max-width:480px;width:90%;max-height:70vh;display:flex;flex-direction:column;gap:12px}
+.modal-header{display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--accent)}
+.modal-close{background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:18px;font-family:inherit;padding:0 4px}
+.modal-close:hover{color:var(--text)}
+.flags-list{overflow-y:auto;display:flex;flex-direction:column;gap:6px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.flag-entry{padding:8px 10px;border:1px solid var(--border);border-radius:2px;font-size:10px;display:flex;flex-direction:column;gap:3px}
+.flag-entry-flag{color:var(--flag-color);font-weight:700;letter-spacing:0.5px}
+.flag-entry-meta{color:var(--text-dim);font-size:9px}
+.flag-entry-diff-std{border-left:2px solid #39d353}
+.flag-entry-diff-hard{border-left:2px solid #ff4444}
+.empty-log{color:var(--text-muted);font-size:11px;text-align:center;padding:20px}
 
 /* TERMINAL */
-.terminal-wrap {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-}
+.terminal-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.terminal-titlebar{background:var(--bg3);border-bottom:1px solid var(--border);padding:7px 14px;display:flex;align-items:center;gap:12px;flex-shrink:0;transition:background 0.4s}
+.term-dots{display:flex;gap:5px}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot.red{background:#ff5f57}.term-dot.yellow{background:#febc2e}.term-dot.green{background:#28c840}
+.term-title{font-size:10px;color:var(--text-dim);margin-left:4px}
+.terminal-output{flex:1;overflow-y:auto;padding:14px 18px 4px;font-size:12.5px;line-height:1.75;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.t-line{white-space:pre-wrap;word-break:break-all}
+.t-prompt{color:var(--prompt-color);font-weight:700;transition:color 0.4s}
+.t-input{color:var(--text)}
+.t-output{color:var(--text)}
+.t-system{color:var(--purple)}
+.t-error{color:var(--red)}
+.t-success{color:#39d353;font-weight:600}
+.t-flag{color:var(--flag-color);font-weight:700;letter-spacing:1px}
+.t-info{color:var(--accent2);transition:color 0.4s}
+.t-warn{color:var(--orange)}
+.t-dir{color:var(--accent2);font-weight:600}
+.t-exec{color:#39d353;font-weight:600}
+.t-hard{color:#ff6b6b}
 
-.terminal-titlebar {
-  background: var(--bg3);
-  border-bottom: 1px solid var(--border);
-  padding: 8px 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
-}
+.terminal-input-area{display:flex;align-items:center;padding:7px 18px 12px;flex-shrink:0;border-top:1px solid var(--border);background:var(--bg2);transition:background 0.4s,border-color 0.4s}
+#prompt-display{color:var(--prompt-color);font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12.5px;white-space:nowrap;margin-right:8px;transition:color 0.4s}
+#terminal-input{flex:1;background:transparent;border:none;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12.5px;outline:none;caret-color:var(--accent)}
 
-.term-dots {
-  display: flex;
-  gap: 6px;
-}
+/* FLASH */
+.flag-flash{position:fixed;inset:0;pointer-events:none;z-index:200;animation:flag-flash-anim 0.9s ease-out forwards}
+.flag-flash.std{background:rgba(57,211,83,0.06)}
+.flag-flash.hard{background:rgba(255,68,68,0.08)}
+@keyframes flag-flash-anim{0%{opacity:1}100%{opacity:0}}
 
-.term-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-}
+/* COMPLETION */
+.completion-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.92);display:none;align-items:center;justify-content:center;z-index:300}
+.completion-box{border:1px solid var(--accent);padding:36px 56px;text-align:center;max-width:520px;transition:border-color 0.4s}
+.completion-box h1{font-size:22px;color:var(--accent);letter-spacing:4px;text-transform:uppercase;margin-bottom:10px;transition:color 0.4s}
+.completion-box p{color:var(--text-dim);font-size:11px;margin-bottom:20px;line-height:1.8}
+.completion-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.comp-stat{background:var(--bg3);padding:12px;text-align:center}
+.comp-stat-val{font-size:28px;font-weight:700;color:var(--accent3)}
+.comp-stat-lbl{font-size:9px;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-top:3px}
+.btn-restart{background:transparent;border:1px solid var(--accent);color:var(--accent);font-family:inherit;font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:8px 20px;cursor:pointer;transition:all 0.2s;margin-top:6px}
+.btn-restart:hover{background:var(--mode-bg)}
 
-.term-dot.red { background: #ff5f57; }
-.term-dot.yellow { background: #febc2e; }
-.term-dot.green { background: #28c840; }
+/* NOTIFICATION */
+.notification{position:fixed;top:48px;right:16px;background:var(--bg3);border:1px solid var(--border);border-left:3px solid var(--accent);padding:9px 14px;font-size:11px;color:var(--text);z-index:250;max-width:260px;opacity:0;transform:translateX(14px);transition:all 0.3s;line-height:1.5}
+.notification.show{opacity:1;transform:translateX(0)}
 
-.term-title {
-  font-size: 11px;
-  color: var(--text-dim);
-  margin-left: 4px;
-}
+/* BOOT */
+.boot-overlay{position:fixed;inset:0;background:#050808;z-index:400;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;padding:40px 60px;font-size:11.5px;line-height:2;color:#39d353}
+.boot-line{opacity:0;animation:boot-in 0.08s ease forwards}
+@keyframes boot-in{to{opacity:1}}
 
-.terminal-output {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px 20px 4px;
-  font-size: 13px;
-  line-height: 1.7;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-}
-
-.t-line { white-space: pre-wrap; word-break: break-all; }
-.t-prompt { color: var(--prompt-color); font-weight: 600; }
-.t-input { color: var(--text); }
-.t-output { color: var(--text); }
-.t-system { color: var(--purple); }
-.t-error { color: var(--red); }
-.t-success { color: var(--green); font-weight: 600; }
-.t-flag { color: var(--flag-color); font-weight: 700; letter-spacing: 1px; }
-.t-info { color: var(--cyan); }
-.t-dir { color: var(--cyan); font-weight: 600; }
-.t-exec { color: var(--green); font-weight: 600; }
-
-.terminal-input-area {
-  display: flex;
-  align-items: center;
-  padding: 8px 20px 14px;
-  gap: 0;
-  flex-shrink: 0;
-  border-top: 1px solid var(--border);
-  background: var(--bg2);
-}
-
-#prompt-display {
-  color: var(--prompt-color);
-  font-weight: 600;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  white-space: nowrap;
-  margin-right: 8px;
-}
-
-#terminal-input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: var(--text);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  outline: none;
-  caret-color: var(--green);
-}
-
-/* FLAG CELEBRATION */
-.flag-flash {
-  position: fixed;
-  inset: 0;
-  background: rgba(57,211,83,0.05);
-  pointer-events: none;
-  z-index: 200;
-  animation: flag-flash-anim 0.8s ease-out forwards;
-}
-
-@keyframes flag-flash-anim {
-  0% { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* COMPLETION SCREEN */
-.completion-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(10,14,19,0.92);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 300;
-  display: none;
-}
-
-.completion-box {
-  border: 1px solid var(--green);
-  padding: 40px 60px;
-  text-align: center;
-  max-width: 500px;
-}
-
-.completion-box h1 {
-  font-size: 28px;
-  color: var(--green);
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-}
-
-.completion-box p {
-  color: var(--text-dim);
-  font-size: 13px;
-  margin-bottom: 24px;
-  line-height: 1.7;
-}
-
-.completion-box .final-xp {
-  font-size: 48px;
-  color: var(--yellow);
-  font-weight: 700;
-}
-
-/* BOOT ANIMATION */
-.boot-overlay {
-  position: fixed;
-  inset: 0;
-  background: var(--bg);
-  z-index: 400;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 40px 60px;
-  font-size: 12px;
-  line-height: 2;
-  color: var(--green);
-}
-
-.boot-line { opacity: 0; animation: boot-in 0.1s ease forwards; }
-@keyframes boot-in { to { opacity: 1; } }
-
-@keyframes pulse-dot {
-  0%, 100% { box-shadow: 0 0 6px var(--cyan); }
-  50% { box-shadow: 0 0 12px var(--cyan), 0 0 20px rgba(88,166,255,0.3); }
-}
-
-.notification {
-  position: fixed;
-  top: 50px;
-  right: 20px;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--green);
-  padding: 10px 16px;
-  font-size: 12px;
-  color: var(--text);
-  z-index: 250;
-  max-width: 280px;
-  opacity: 0;
-  transform: translateX(20px);
-  transition: all 0.3s ease;
-  line-height: 1.5;
-}
-
-.notification.show {
-  opacity: 1;
-  transform: translateX(0);
-}
+/* HARD MODE SCAN EFFECT */
+body.hard-mode .terminal-output{background:rgba(30,5,5,0.2)}
+body.hard-mode .topbar-brand{text-shadow:0 0 8px rgba(255,68,68,0.5)}
 </style>
 </head>
 <body>
-
-<!-- BOOT OVERLAY -->
 <div class="boot-overlay" id="boot-overlay"></div>
 
-<!-- COMPLETION OVERLAY -->
 <div class="completion-overlay" id="completion-overlay">
   <div class="completion-box">
-    <h1>[ MISIÓN COMPLETA ]</h1>
-    <p>Has superado todos los niveles del CTF.<br>Ahora conoces los fundamentos de la terminal Linux.</p>
-    <div class="final-xp" id="final-xp">1600 XP</div>
-    <p style="margin-top:8px; font-size:11px; color: var(--yellow);">— XP TOTAL —</p>
+    <h1 id="comp-title">[ MISIÓN COMPLETA ]</h1>
+    <p id="comp-subtitle">Has superado todos los niveles.<br>Ahora dominas los fundamentos de la terminal Linux.</p>
+    <div class="completion-stats">
+      <div class="comp-stat"><div class="comp-stat-val" id="comp-xp">0</div><div class="comp-stat-lbl">XP Total</div></div>
+      <div class="comp-stat"><div class="comp-stat-val" id="comp-time">0:00</div><div class="comp-stat-lbl">Tiempo Total</div></div>
+      <div class="comp-stat"><div class="comp-stat-val" id="comp-streak">0</div><div class="comp-stat-lbl">Max Racha</div></div>
+      <div class="comp-stat"><div class="comp-stat-val" id="comp-flags">0</div><div class="comp-stat-lbl">Flags Capturadas</div></div>
+    </div>
+    <p style="font-size:10px;color:var(--accent3)" id="comp-mode-msg"></p>
+    <button class="btn-restart" onclick="restartAll()">↺ REINICIAR</button>
   </div>
 </div>
 
-<!-- NOTIFICATION -->
+<!-- FLAGS LOG MODAL -->
+<div class="modal-overlay" id="flags-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Flags Capturadas</span>
+      <button class="modal-close" onclick="closeFlagsModal()">✕</button>
+    </div>
+    <div class="flags-list" id="flags-list"></div>
+  </div>
+</div>
+
 <div class="notification" id="notification"></div>
 
-<!-- TOP BAR -->
+<!-- TOPBAR -->
 <div class="topbar">
   <div class="topbar-left">
     <span class="topbar-brand">CTF Academy</span>
     <span class="topbar-sep">//</span>
     <span class="topbar-level" id="topbar-level">Nivel 0</span>
+    <span class="streak" id="streak-display" style="display:none"></span>
   </div>
   <div class="topbar-right">
-    <div class="xp-bar-wrap">
-      <span>XP</span>
-      <div class="xp-bar"><div class="xp-bar-fill" id="xp-bar-fill"></div></div>
-      <span class="xp-label" id="xp-label">0 / 1600</span>
+    <span class="timer" id="timer-display">00:00</span>
+    <div class="xp-group">
+      <div class="xp-row">
+        <span class="xp-label-tag">STD</span>
+        <div class="xp-bar"><div class="xp-bar-fill std" id="xp-bar-std"></div></div>
+        <span class="xp-val" id="xp-val-std">0 XP</span>
+      </div>
+      <div class="xp-row">
+        <span class="xp-label-tag" style="color:#ff4444">ADV</span>
+        <div class="xp-bar"><div class="xp-bar-fill hard" id="xp-bar-hard"></div></div>
+        <span class="xp-val" id="xp-val-hard">0 XP</span>
+      </div>
+    </div>
+    <div class="mode-toggle">
+      <button class="mode-btn active-std" id="btn-std" onclick="switchMode('std')">ESTÁNDAR</button>
+      <button class="mode-btn" id="btn-hard" onclick="switchMode('hard')">AVANZADO</button>
     </div>
   </div>
 </div>
 
 <!-- MAIN -->
 <div class="main">
-
-  <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-section">
-      <div class="mission-badge" id="level-badge">NIVEL 0</div>
+    <div class="sidebar-top">
+      <div class="diff-badge std" id="diff-badge">ESTÁNDAR</div>
       <div class="mission-title" id="level-title">Cargando...</div>
       <div class="mission-obj" id="level-obj"></div>
+    </div>
+
+    <div class="progress-panel">
+      <div class="prog-title">Progreso Global</div>
+      <div class="prog-row">
+        <span class="prog-tag" style="color:#39d353">Estándar</span>
+        <div class="prog-bar-outer"><div class="prog-bar-inner std" id="prog-std" style="width:0%"></div></div>
+        <span class="prog-count" id="prog-std-count">0/16</span>
+      </div>
+      <div class="prog-row">
+        <span class="prog-tag" style="color:#ff4444">Avanzado</span>
+        <div class="prog-bar-outer"><div class="prog-bar-inner hard" id="prog-hard" style="width:0%"></div></div>
+        <span class="prog-count" id="prog-hard-count">0/16</span>
+      </div>
     </div>
 
     <div class="levels-list" id="levels-list"></div>
 
     <div class="sidebar-bottom">
-      <button class="btn-hint" id="btn-hint" onclick="toggleHint()">
-        ▸ MOSTRAR PISTA
-      </button>
+      <button class="btn-hint" id="btn-hint" onclick="toggleHint()">▸ MOSTRAR PISTA</button>
       <div class="hint-box" id="hint-box"></div>
+      <button class="btn-flag-log" onclick="openFlagsModal()">⚑ VER FLAGS CAPTURADAS</button>
     </div>
   </aside>
 
-  <!-- TERMINAL -->
   <div class="terminal-wrap">
     <div class="terminal-titlebar">
       <div class="term-dots">
-        <div class="term-dot red"></div>
-        <div class="term-dot yellow"></div>
-        <div class="term-dot green"></div>
+        <div class="term-dot red"></div><div class="term-dot yellow"></div><div class="term-dot green"></div>
       </div>
       <span class="term-title" id="term-title">student@ctf: ~</span>
     </div>
@@ -551,320 +289,469 @@ body::before {
       <input type="text" id="terminal-input" autocomplete="off" spellcheck="false" autofocus placeholder="escribe un comando...">
     </div>
   </div>
-
 </div>
 
 <script>
-/* ========== CONFIG ========== */
+/* ======== CONSTANTS ======== */
 const BACKEND_URL = "https://script.google.com/macros/s/AKfycby5KhDXiU14ig-zYwXya-eWUC5afEEitedzfhOkEkcbzldawlFHzM6vEXa1DiKZJwad/exec";
-const TOTAL_LEVELS = 16;
-const XP_PER_LEVEL = 100;
+const TOTAL = 16;
+const XP_STD = 100;
+const XP_HARD = 200;
 
-/* ========== LEVEL DATA ========== */
-const levels = [
-  { title: "Nivel 0", name: "El Primer Paso", obj: "Lee el archivo readme con el comando correcto.", flag: "FLAG{inicio_exitoso}", hint: "Busca en Google: 'cómo mostrar el contenido de un archivo en la terminal Linux' (pista: el comando es cat)." },
-  { title: "Nivel 1", name: "Guion Maldito", obj: "Lee el archivo llamado '-' (guion).", flag: "FLAG{lectura_de_guion}", hint: "Busca en Google: 'how to cat a file named dash or hyphen in linux'. Necesitas indicar la ruta con ./." },
-  { title: "Nivel 2", name: "Nombre Raro", obj: "Lee el archivo que tiene espacios en su nombre.", flag: "FLAG{espacios_manejados}", hint: "Busca en Google: 'cómo leer un archivo con espacios en su nombre en Linux'. Usa comillas dobles alrededor del nombre." },
-  { title: "Nivel 3", name: "Lo Invisible", obj: "Encuentra y lee el archivo oculto.", flag: "FLAG{archivos_ocultos}", hint: "Busca en Google: 'listar archivos ocultos Linux'. Los archivos ocultos empiezan con un punto. Usa ls -a para verlos." },
-  { title: "Nivel 4", name: "Rutas", obj: "Explora la carpeta inhere y lee el flag.", flag: "FLAG{rutas_relativas}", hint: "Usa 'cd inhere' para entrar, luego 'ls' para ver los archivos, y 'cat' para leer." },
-  { title: "Nivel 5", name: "Aguja en el Pajar", obj: "Filtra la palabra 'millionth' en el archivo data.txt.", flag: "FLAG{grep_salva_vidas}", hint: "Busca en Google: 'comando grep Linux buscar palabra en archivo'. Uso: grep <palabra> <archivo>." },
-  { title: "Nivel 6", name: "Texto Cifrado", obj: "Decodifica el archivo b64.txt de Base64.", flag: "FLAG{base64_decodificado}", hint: "Busca en Google: 'decodificar base64 terminal Linux'. Uso: base64 -d <archivo>." },
-  { title: "Nivel 7", name: "Al Revés", obj: "Invierte el texto del archivo rev.txt.", flag: "FLAG{texto_al_reves}", hint: "Busca en Google: 'comando rev Linux invertir texto'. Uso: rev <archivo>." },
-  { title: "Nivel 8", name: "El Script", obj: "Lee el contenido del script.sh.", flag: "FLAG{scripts_basicos}", hint: "Usa el mismo comando que en el Nivel 0 — un script .sh es texto plano y se puede leer con cat." },
-  { title: "Nivel 9", name: "Ejecutar", obj: "Ejecuta el binario local ejecutable.sh.", flag: "FLAG{ejecucion_local}", hint: "Busca en Google: 'ejecutar script en directorio actual Linux'. Debes usar ./ antes del nombre." },
-  { title: "Nivel 10", name: "Permisos", obj: "Da permisos de ejecución a locked.sh y ejecútalo.", flag: "FLAG{permisos_chmod}", hint: "Busca en Google: 'chmod dar permiso ejecucion Linux'. Uso: chmod +x <archivo>, luego ./<archivo>." },
-  { title: "Nivel 11", name: "Laberinto", obj: "Navega los directorios anidados hasta encontrar el flag.", flag: "FLAG{explorador_find}", hint: "Entra a cada carpeta con cd: cd dir1, cd dir2, cd dir3. Luego cat flag." },
-  { title: "Nivel 12", name: "El Entorno", obj: "Examina las variables de entorno del sistema.", flag: "FLAG{variables_entorno}", hint: "Busca en Google: 'mostrar variables de entorno Linux'. El comando es 'env'." },
-  { title: "Nivel 13", name: "Cambio de Identidad", obj: "Cambia al usuario admin y lee su flag.txt.", flag: "FLAG{cambio_usuario}", hint: "Busca en Google: 'cambiar usuario terminal Linux substitute user'. Lee el archivo pass.txt primero." },
-  { title: "Nivel 14", name: "SSH", obj: "Conéctate por SSH al servidor indicado en server_ip.txt.", flag: "FLAG{conexion_ssh_exitosa}", hint: "Busca en Google: 'sintaxis ssh usuario@host Linux'. Formato: ssh admin@<ip>." },
-  { title: "Nivel 15", name: "Netcat", obj: "Conéctate al puerto local con netcat.", flag: "FLAG{netcat_master}", hint: "Busca en Google: 'nc netcat conectar puerto localhost'. Lee ports.txt para el puerto. Uso: nc localhost <puerto>." }
+/* ======== LEVEL DEFINITIONS ======== */
+const levelsStd = [
+  { title:"Nivel 0", name:"El Primer Paso",
+    obj:"Lee el archivo 'readme' en tu directorio actual.",
+    flag:"FLAG{inicio_exitoso}",
+    hint:"Usa el comando 'cat' seguido del nombre del archivo. Ej: cat readme" },
+  { title:"Nivel 1", name:"Guion Maldito",
+    obj:"Lee el archivo llamado '-' (guion).",
+    flag:"FLAG{lectura_de_guion}",
+    hint:"Los archivos que empiezan con - confunden a cat. Usa ./ para indicar la ruta: cat ./-" },
+  { title:"Nivel 2", name:"Nombre Raro",
+    obj:"Lee el archivo que tiene espacios en su nombre.",
+    flag:"FLAG{espacios_manejados}",
+    hint:"Usa comillas dobles alrededor del nombre: cat \"file with spaces\"" },
+  { title:"Nivel 3", name:"Lo Invisible",
+    obj:"Encuentra y lee el archivo oculto en el directorio.",
+    flag:"FLAG{archivos_ocultos}",
+    hint:"Los archivos ocultos empiezan con punto. Usa 'ls -a' para verlos, luego cat." },
+  { title:"Nivel 4", name:"Rutas",
+    obj:"Entra a la carpeta 'inhere' y lee el flag.txt.",
+    flag:"FLAG{rutas_relativas}",
+    hint:"Usa: cd inhere → ls → cat flag.txt" },
+  { title:"Nivel 5", name:"Aguja en el Pajar",
+    obj:"Busca la línea con 'millionth' en data.txt.",
+    flag:"FLAG{grep_salva_vidas}",
+    hint:"Usa grep: grep millionth data.txt" },
+  { title:"Nivel 6", name:"Texto Cifrado",
+    obj:"Decodifica el archivo b64.txt de Base64.",
+    flag:"FLAG{base64_decodificado}",
+    hint:"Usa: base64 -d b64.txt" },
+  { title:"Nivel 7", name:"Al Revés",
+    obj:"Invierte el texto del archivo rev.txt.",
+    flag:"FLAG{texto_al_reves}",
+    hint:"Usa el comando rev: rev rev.txt" },
+  { title:"Nivel 8", name:"El Script",
+    obj:"Lee el contenido del script.sh.",
+    flag:"FLAG{scripts_basicos}",
+    hint:"Los scripts .sh son texto plano. Usa: cat script.sh" },
+  { title:"Nivel 9", name:"Ejecutar",
+    obj:"Ejecuta el binario local ejecutable.sh.",
+    flag:"FLAG{ejecucion_local}",
+    hint:"Para ejecutar algo en el directorio actual usa ./: ./ejecutable.sh" },
+  { title:"Nivel 10", name:"Permisos",
+    obj:"Da permisos de ejecución a locked.sh y ejecútalo.",
+    flag:"FLAG{permisos_chmod}",
+    hint:"Primero: chmod +x locked.sh — luego: ./locked.sh" },
+  { title:"Nivel 11", name:"Laberinto",
+    obj:"Navega dir1/dir2/dir3 y lee el archivo 'flag'.",
+    flag:"FLAG{explorador_find}",
+    hint:"Entra uno por uno: cd dir1 → cd dir2 → cd dir3 → cat flag" },
+  { title:"Nivel 12", name:"El Entorno",
+    obj:"Examina las variables de entorno del sistema.",
+    flag:"FLAG{variables_entorno}",
+    hint:"El comando 'env' muestra todas las variables de entorno." },
+  { title:"Nivel 13", name:"Cambio de Identidad",
+    obj:"Lee pass.txt, cambia al usuario admin y lee su flag.txt.",
+    flag:"FLAG{cambio_usuario}",
+    hint:"cat pass.txt → luego: su admin (usa la contraseña que encontraste)" },
+  { title:"Nivel 14", name:"SSH",
+    obj:"Conecta por SSH al servidor indicado en server_ip.txt.",
+    flag:"FLAG{conexion_ssh_exitosa}",
+    hint:"Lee server_ip.txt para la IP, luego: ssh admin@<ip>" },
+  { title:"Nivel 15", name:"Netcat",
+    obj:"Conecta al puerto local indicado en ports.txt usando nc.",
+    flag:"FLAG{netcat_master}",
+    hint:"Lee ports.txt para el puerto, luego: nc localhost <puerto>" }
 ];
 
-/* ========== FILESYSTEM ========== */
+const levelsHard = [
+  { title:"Nivel 0", name:"El Primer Paso [ADV]",
+    obj:"Lee el archivo 'readme'. Hay 3 archivos similares — solo uno contiene el flag real.",
+    flag:"FLAG{inicio_exitoso}",
+    hint:"Usa cat en cada archivo y compara. El flag real tiene el formato FLAG{...}." },
+  { title:"Nivel 1", name:"Guion Maldito [ADV]",
+    obj:"Lee el archivo '-' y también encuentra el archivo oculto con pista en el mismo directorio.",
+    flag:"FLAG{lectura_de_guion}",
+    hint:"cat ./- para el guion. Usa ls -la para ver todos los archivos incluyendo ocultos." },
+  { title:"Nivel 2", name:"Nombre Raro [ADV]",
+    obj:"Hay varios archivos con espacios. El flag está en el que contiene 'secreto' en el nombre.",
+    flag:"FLAG{espacios_manejados}",
+    hint:"Usa ls -a para listarlos todos, luego cat con comillas en el nombre correcto." },
+  { title:"Nivel 3", name:"Lo Invisible [ADV]",
+    obj:"Hay 4 archivos ocultos. El flag está fragmentado — debes concatenar .part1 y .part2.",
+    flag:"FLAG{archivos_ocultos}",
+    hint:"Usa ls -a para ver todos. Luego cat .part1 y cat .part2 — el flag es la combinación." },
+  { title:"Nivel 4", name:"Rutas [ADV]",
+    obj:"El flag está en inhere/subfolder/deep/flag.txt — navega sin usar cd múltiples veces.",
+    flag:"FLAG{rutas_relativas}",
+    hint:"Puedes usar cat con ruta completa: cat inhere/subfolder/deep/flag.txt" },
+  { title:"Nivel 5", name:"Aguja en el Pajar [ADV]",
+    obj:"El archivo tiene 200 líneas. Busca 'TARGET' y luego también busca 'CLAVE' — necesitas ambas.",
+    flag:"FLAG{grep_salva_vidas}",
+    hint:"Usa grep dos veces: grep TARGET data.txt y grep CLAVE data.txt. El flag está en la línea TARGET." },
+  { title:"Nivel 6", name:"Texto Cifrado [ADV]",
+    obj:"El archivo está codificado dos veces en Base64. Decodifica y vuelve a decodificar.",
+    flag:"FLAG{base64_decodificado}",
+    hint:"Primero: base64 -d b64.txt → el resultado es otro base64. Guárdalo y decodifícalo otra vez manualmente." },
+  { title:"Nivel 7", name:"Al Revés [ADV]",
+    obj:"El archivo tiene 5 líneas invertidas. El flag está en la línea 3 invertida.",
+    flag:"FLAG{texto_al_reves}",
+    hint:"Usa rev rev.txt para ver todas las líneas invertidas. El flag está en la tercera línea." },
+  { title:"Nivel 8", name:"El Script [ADV]",
+    obj:"El script tiene el flag codificado en su interior. Lee el script y decodifica el echo.",
+    flag:"FLAG{scripts_basicos}",
+    hint:"cat script.sh te muestra el contenido. Verás una línea echo con texto — ese texto es el flag." },
+  { title:"Nivel 9", name:"Ejecutar [ADV]",
+    obj:"Hay 3 binarios: solo uno produce el flag. Los otros dos son trampas.",
+    flag:"FLAG{ejecucion_local}",
+    hint:"Ejecuta cada uno con ./nombre y lee el output. Solo uno tiene el formato FLAG{...}." },
+  { title:"Nivel 10", name:"Permisos [ADV]",
+    obj:"Hay dos scripts: dale chmod +x al correcto. El otro tiene permisos pero no es el flag real.",
+    flag:"FLAG{permisos_chmod}",
+    hint:"Usa ls -l para ver cuál no tiene permisos. chmod +x locked.sh → ./locked.sh" },
+  { title:"Nivel 11", name:"Laberinto [ADV]",
+    obj:"El laberinto tiene 5 niveles de profundidad. Cada carpeta tiene un decoy.txt con pistas falsas.",
+    flag:"FLAG{explorador_find}",
+    hint:"Entra a cada directorio e ignora los decoy.txt. El flag real está en dir1/dir2/dir3/dir4/dir5/flag." },
+  { title:"Nivel 12", name:"El Entorno [ADV]",
+    obj:"Hay 10 variables de entorno. Solo una es el flag — las demás son ruido. Encuéntrala.",
+    flag:"FLAG{variables_entorno}",
+    hint:"Usa env y busca visualmente la variable con formato FLAG{...}. O: env | grep FLAG" },
+  { title:"Nivel 13", name:"Cambio de Identidad [ADV]",
+    obj:"La contraseña de admin está codificada en Base64 en pass.txt. Decodifícala primero.",
+    flag:"FLAG{cambio_usuario}",
+    hint:"base64 -d pass.txt para obtener la contraseña real. Luego su admin con esa contraseña." },
+  { title:"Nivel 14", name:"SSH [ADV]",
+    obj:"La IP está en server_ip.txt pero en formato invertido (rev). Decodifícala antes de conectar.",
+    flag:"FLAG{conexion_ssh_exitosa}",
+    hint:"rev server_ip.txt para obtener la IP real. Luego ssh admin@<ip>" },
+  { title:"Nivel 15", name:"Netcat [ADV]",
+    obj:"El puerto está cifrado en base64 en ports.txt. Decodifícalo y conéctate.",
+    flag:"FLAG{netcat_master}",
+    hint:"base64 -d ports.txt para obtener el puerto. Luego nc localhost <puerto>" }
+];
+
+/* ======== FILESYSTEMS ======== */
+function makeStdEnv(i) {
+  const e = [
+    { home:{ student:{ readme:"FLAG{inicio_exitoso}", "info.txt":"Bienvenido al CTF.", "notas.txt":"Practica con cat." }}},
+    { home:{ student:{ "-":"FLAG{lectura_de_guion}", "readme.txt":"Pista: cat ./-" }}},
+    { home:{ student:{ "file with spaces":"FLAG{espacios_manejados}", "otroarchivo":"Esto no es el flag." }}},
+    { home:{ student:{ ".hidden":"FLAG{archivos_ocultos}", ".bash_history":"ls -a\ncat .hidden", "readme":"No hay nada aqui." }}},
+    { home:{ student:{ inhere:{ "flag.txt":"FLAG{rutas_relativas}", "readme.txt":"El flag esta aqui." }}}},
+    { home:{ student:{ "data.txt": genData5std() }}},
+    { home:{ student:{ "b64.txt":"RkxBR3tiYXNlNjRfZGVjb2RpZmljYWRvfQ==" }}},
+    { home:{ student:{ "rev.txt":"}saver_la_otxet{GALF" }}},
+    { home:{ student:{ "script.sh":"#!/bin/bash\n# Script de demostración\necho FLAG{scripts_basicos}" }}},
+    { home:{ student:{ "ejecutable.sh":{ type:"exec",content:"FLAG{ejecucion_local}",perms:"x" }}}},
+    { home:{ student:{ "locked.sh":{ type:"exec",content:"FLAG{permisos_chmod}",perms:"-" }, "perms.txt":"-rw-r--r-- locked.sh" }}},
+    { home:{ student:{ dir1:{ dir2:{ dir3:{ flag:"FLAG{explorador_find}", "info.txt":"Bien hecho." }}}}}},
+    { home:{ student:{ ".bashrc":"# config", "readme.txt":"Las variables de entorno son importantes." }}},
+    { home:{ student:{ "pass.txt":"admin123", "readme.txt":"Usa su admin." }, admin:{ "flag.txt":"FLAG{cambio_usuario}", "secret.txt":"Solo para admin." }}},
+    { home:{ student:{ "server_ip.txt":"192.168.1.100", "readme.txt":"ssh admin@<ip>" }}},
+    { home:{ student:{ "ports.txt":"Puerto: 3000", "readme.txt":"nc localhost <puerto>" }}}
+  ];
+  return e[i];
+}
+
+function makeHardEnv(i) {
+  const e = [
+    { home:{ student:{ readme:"FLAG{inicio_exitoso}", "readme.bak":"Este no es el flag.", "readme.old":"Tampoco." }}},
+    { home:{ student:{ "-":"FLAG{lectura_de_guion}", ".clue":"Pista: usa ./ para archivos con nombres raros.", ".secret":"No hay flag aqui." }}},
+    { home:{ student:{ "file with spaces":"Este no es el flag.", "archivo secreto":"FLAG{espacios_manejados}", "otro archivo":"Nada aqui." }}},
+    { home:{ student:{ ".part1":"FLAG{archivos", ".part2":"_ocultos}", ".decoy1":"Pista falsa 1.", ".decoy2":"Pista falsa 2." }}},
+    { home:{ student:{ inhere:{ subfolder:{ deep:{ "flag.txt":"FLAG{rutas_relativas}", "decoy.txt":"Sigue buscando." }}}}}},
+    { home:{ student:{ "data.txt": genData5hard() }}},
+    { home:{ student:{ "b64.txt": btoa(btoa("FLAG{base64_decodificado}")) }}},
+    { home:{ student:{ "rev.txt":"anial1\nanila2\n}saver_la_otxet{GALF\nanila4\nanila5" }}},
+    { home:{ student:{ "script.sh":"#!/bin/bash\n# Adivina cual es el flag\nMSG=\"FLAG{scripts_basicos}\"\necho $MSG" }}},
+    { home:{ student:{ "real.sh":{ type:"exec",content:"FLAG{ejecucion_local}",perms:"x" }, "fake1.sh":{ type:"exec",content:"ERROR: No eres el elegido.",perms:"x" }, "fake2.sh":{ type:"exec",content:"ACCESO DENEGADO.",perms:"x" }}}},
+    { home:{ student:{ "locked.sh":{ type:"exec",content:"FLAG{permisos_chmod}",perms:"-" }, "already.sh":{ type:"exec",content:"Decoy: esto no es el flag real.",perms:"x" }}}},
+    { home:{ student:{ dir1:{ "decoy.txt":"Pista falsa.", dir2:{ "decoy.txt":"Sigue bajando.", dir3:{ "decoy.txt":"Ya casi.", dir4:{ "decoy.txt":"Un nivel mas.", dir5:{ flag:"FLAG{explorador_find}", "decoy.txt":"Este si." }}}}}}}},
+    { home:{ student:{ ".bashrc":"# config" }}},
+    { home:{ student:{ "pass.txt": btoa("admin123"), "readme.txt":"La contraseña está codificada." }, admin:{ "flag.txt":"FLAG{cambio_usuario}" }}},
+    { home:{ student:{ "server_ip.txt":"001.861.861.291".split("").reverse().join(""), "readme.txt":"La IP está al revés." }}},
+    { home:{ student:{ "ports.txt": btoa("3000"), "readme.txt":"El puerto está en base64." }}}
+  ];
+  return e[i];
+}
+
+function genData5std() {
+  const lines = [];
+  for(let i=0;i<80;i++) lines.push(i===38 ? "millionth FLAG{grep_salva_vidas}" : "basura"+i+": "+Math.random().toString(36).slice(2,10));
+  return lines.join("\n");
+}
+function genData5hard() {
+  const lines = [];
+  for(let i=0;i<200;i++){
+    if(i===97) lines.push("TARGET: FLAG{grep_salva_vidas}");
+    else if(i===143) lines.push("CLAVE: necesitas encontrar TARGET y CLAVE");
+    else lines.push("ruido"+i+": "+Math.random().toString(36).slice(2,12));
+  }
+  return lines.join("\n");
+}
+
+/* ======== STATE ======== */
+let mode = "std"; // "std" | "hard"
+let currentLevel = 0;
 let currentLevelData = 0;
-let currentPath = ["home", "student"];
-let envVars = {};
+let currentPath = ["home","student"];
 let currentUser = "student";
+let envVars = {};
+let completedStd = new Set();
+let completedHard = new Set();
+let xpStd = 0, xpHard = 0;
+let hintVisible = false;
+let flagsLog = []; // {level, flag, mode, time, levelName}
+let commandHistory = [];
+let historyIndex = -1;
+let levelStartTime = Date.now();
+let totalElapsed = 0;
+let timerInterval = null;
+let streak = 0;
+let maxStreak = 0;
+let sessionStart = Date.now();
 
-const environments = {
-  0: { home: { student: { readme: "FLAG{inicio_exitoso}" } } },
-  1: { home: { student: { "-": "FLAG{lectura_de_guion}" } } },
-  2: { home: { student: { "file with spaces": "FLAG{espacios_manejados}" } } },
-  3: { home: { student: { ".hidden": "FLAG{archivos_ocultos}", ".bash_history": "cat readme\nls -a\ncd /home", ".profile": "# user profile" } } },
-  4: { home: { student: { inhere: { "flag.txt": "FLAG{rutas_relativas}", "readme.txt": "El flag está aquí." } } } },
-  5: { home: { student: { "data.txt": Array.from({length:50}, (_,i) => i===24 ? "millionth FLAG{grep_salva_vidas}" : `linea${i}: ${Math.random().toString(36).slice(2,10)}`).join("\n") } } },
-  6: { home: { student: { "b64.txt": "RkxBR3tiYXNlNjRfZGVjb2RpZmljYWRvfQ==" } } },
-  7: { home: { student: { "rev.txt": "}saver_la_otxet{GALF" } } },
-  8: { home: { student: { "script.sh": "#!/bin/bash\necho FLAG{scripts_basicos}" } } },
-  9: { home: { student: { "ejecutable.sh": { type: "exec", content: "FLAG{ejecucion_local}", perms: "x" } } } },
-  10: { home: { student: { "locked.sh": { type: "exec", content: "FLAG{permisos_chmod}", perms: "-" }, "perms.txt": "-rw-r--r-- locked.sh" } } },
-  11: { home: { student: { dir1: { dir2: { dir3: { flag: "FLAG{explorador_find}", "info.txt": "Bien hecho, casi llegas." } } } } } },
-  12: { home: { student: { ".bashrc": "# Configuración del shell", "readme.txt": "Las variables de entorno guardan información del sistema." } } },
-  13: { home: { student: { "pass.txt": "admin123", "readme.txt": "Usa su <usuario> para cambiar de sesión." }, admin: { "flag.txt": "FLAG{cambio_usuario}", "secret.txt": "Acceso restringido." } } },
-  14: { home: { student: { "server_ip.txt": "192.168.1.100", "readme.txt": "Conéctate con SSH: ssh admin@<ip>" } } },
-  15: { home: { student: { "ports.txt": "Puerto abierto en: 3000", "readme.txt": "Usa nc para conectarte a un puerto local." } } }
-};
+function getLevels() { return mode === "std" ? levelsStd : levelsHard; }
+function getCompletedSet() { return mode === "std" ? completedStd : completedHard; }
+function getXpPerLevel() { return mode === "std" ? XP_STD : XP_HARD; }
 
-function initEnvironment(levelId) {
-  currentLevelData = levelId;
-  currentPath = ["home", "student"];
+function initEnvironment(idx) {
+  currentLevelData = idx;
+  currentPath = ["home","student"];
   currentUser = "student";
-  envVars = levelId === 12 ? { "FLAG_VAR": "FLAG{variables_entorno}", "HOME": "/home/student", "USER": "student", "SHELL": "/bin/bash", "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "es_ES.UTF-8", "TERM": "xterm-256color" } : { "HOME": "/home/student", "USER": "student", "SHELL": "/bin/bash", "PATH": "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "es_ES.UTF-8" };
+  const envBase = { HOME:"/home/student", USER:"student", SHELL:"/bin/bash", PATH:"/usr/local/bin:/usr/bin:/bin", LANG:"es_ES.UTF-8", TERM:"xterm-256color" };
+  if(idx === 12 && mode === "std") {
+    envVars = { ...envBase, FLAG_VAR:"FLAG{variables_entorno}" };
+  } else if(idx === 12 && mode === "hard") {
+    envVars = { ...envBase,
+      NOISE_1:"abc123def", NOISE_2:"xyz789qrs", NOISE_3:"1a2b3c4d5e",
+      NOISE_4:"randomval42", NOISE_5:"ctf_decoy_1",
+      FLAG_VAR:"FLAG{variables_entorno}",
+      NOISE_6:"nottheflag", NOISE_7:"decoy_var_2", NOISE_8:"fakeval99",
+      NOISE_9:"another_noise", NOISE_10:"still_not_it"
+    };
+  } else {
+    envVars = envBase;
+  }
+}
+
+function getEnvForLevel(idx) {
+  return mode === "std" ? makeStdEnv(idx) : makeHardEnv(idx);
 }
 
 function getDir(pathArray) {
-  let current = environments[currentLevelData];
-  for (let seg of pathArray) {
-    if (!current || current[seg] === undefined) return null;
-    current = current[seg];
+  let cur = getEnvForLevel(currentLevelData);
+  for(const seg of pathArray) {
+    if(!cur || cur[seg] === undefined) return null;
+    cur = cur[seg];
   }
-  return current;
+  return cur;
 }
 
 function getPathString() {
-  const joined = currentPath.join("/");
-  if (joined === "home/student") return "~";
-  if (joined === "home/admin") return "~";
-  return "/" + joined;
+  const j = currentPath.join("/");
+  if(j === "home/student" || j === "home/admin") return "~";
+  return "/" + j;
 }
 
-/* ========== COMMANDS ========== */
-const commandHistory = [];
-let historyIndex = -1;
-
+/* ======== COMMANDS ======== */
 const commands = {
-  help: () => {
-    return [
-      { cls: "t-info", text: "Comandos disponibles:" },
-      { cls: "t-output", text: "  pwd          — muestra el directorio actual" },
-      { cls: "t-output", text: "  ls [-a]      — lista archivos del directorio" },
-      { cls: "t-output", text: "  cd <dir>     — cambia de directorio" },
-      { cls: "t-output", text: "  cat <file>   — muestra contenido de un archivo" },
-      { cls: "t-output", text: "  grep <p> <f> — busca patrón en archivo" },
-      { cls: "t-output", text: "  base64 -d <f>— decodifica base64" },
-      { cls: "t-output", text: "  rev <file>   — invierte texto" },
-      { cls: "t-output", text: "  chmod +x <f> — da permisos de ejecución" },
-      { cls: "t-output", text: "  ./<script>   — ejecuta un script/binario" },
-      { cls: "t-output", text: "  env           — muestra variables de entorno" },
-      { cls: "t-output", text: "  su <user>    — cambia de usuario" },
-      { cls: "t-output", text: "  ssh <user@ip>— conecta por SSH" },
-      { cls: "t-output", text: "  nc <host> <p>— conecta por netcat" },
-      { cls: "t-output", text: "  clear         — limpia la terminal" },
-      { cls: "t-output", text: "  whoami        — muestra el usuario actual" },
-      { cls: "t-output", text: "  echo <txt>   — imprime texto" },
-    ];
-  },
-
-  pwd: () => {
-    const path = currentPath.join("/");
-    return path === "home/student" || path === "home/admin" ? "/" + path : "/" + path;
-  },
-
+  help: () => [
+    {cls:"t-info", text:"Comandos disponibles:"},
+    {cls:"t-output", text:"  pwd            — directorio actual"},
+    {cls:"t-output", text:"  ls [-a] [-l]   — listar archivos"},
+    {cls:"t-output", text:"  cd <dir>       — cambiar directorio"},
+    {cls:"t-output", text:"  cat <file>     — mostrar archivo"},
+    {cls:"t-output", text:"  grep <p> <f>   — buscar patrón en archivo"},
+    {cls:"t-output", text:"  base64 -d <f>  — decodificar base64"},
+    {cls:"t-output", text:"  rev <file>     — invertir texto"},
+    {cls:"t-output", text:"  chmod +x <f>   — dar permisos de ejecución"},
+    {cls:"t-output", text:"  ./<script>     — ejecutar script local"},
+    {cls:"t-output", text:"  env            — variables de entorno"},
+    {cls:"t-output", text:"  su <user>      — cambiar usuario"},
+    {cls:"t-output", text:"  ssh <user@ip>  — conectar por SSH"},
+    {cls:"t-output", text:"  nc <host> <p>  — conectar por netcat"},
+    {cls:"t-output", text:"  whoami         — usuario actual"},
+    {cls:"t-output", text:"  echo <texto>   — imprimir texto"},
+    {cls:"t-output", text:"  clear          — limpiar terminal"},
+  ],
+  pwd: () => "/" + currentPath.join("/"),
   whoami: () => currentUser,
-
   echo: (args) => args.join(" "),
-
-  clear: () => {
-    document.getElementById("terminal-output").innerHTML = "";
-    return null;
-  },
+  clear: () => { document.getElementById("terminal-output").innerHTML = ""; return null; },
 
   ls: (args) => {
-    const showHidden = args.includes("-a") || args.includes("-la") || args.includes("-al");
-    const showLong = args.includes("-l") || args.includes("-la") || args.includes("-al");
+    const showHidden = args.some(a => a.includes("a"));
+    const showLong = args.some(a => a.includes("l"));
     const dir = getDir(currentPath);
-    if (!dir || typeof dir !== "object" || dir.type === "exec") return "ls: no es un directorio";
-
+    if(!dir || typeof dir !== "object" || dir.type === "exec") return "ls: no es un directorio";
     let files = Object.keys(dir).filter(f => showHidden || !f.startsWith("."));
-    if (showHidden) files = [".", "..", ...files];
-
-    if (showLong) {
-      const lines = [];
-      if (showHidden) lines.push("total " + files.length);
-      for (const f of files) {
-        if (f === "." || f === "..") { lines.push({ cls: "t-dir", text: `drwxr-xr-x  2 ${currentUser} ${currentUser}    4096 Jan 01 00:00 ${f}` }); continue; }
-        const entry = dir[f];
-        if (typeof entry === "object" && !entry.type) {
-          lines.push({ cls: "t-dir", text: `drwxr-xr-x  2 ${currentUser} ${currentUser}    4096 Jan 01 00:00 ${f}` });
-        } else if (entry && entry.type === "exec") {
-          const perms = entry.perms === "x" ? "-rwxr-xr-x" : "-rw-r--r--";
-          lines.push({ cls: entry.perms === "x" ? "t-exec" : "t-output", text: `${perms}  1 ${currentUser} ${currentUser}     256 Jan 01 00:00 ${f}` });
+    if(showHidden) files = [".",".."].concat(files);
+    if(showLong) {
+      const rows = [];
+      for(const f of files) {
+        if(f==="."||f==="..") { rows.push({cls:"t-dir",text:`drwxr-xr-x  2 ${currentUser} ${currentUser}   4096 Jan 01 00:00 ${f}`}); continue; }
+        const ent = dir[f];
+        if(typeof ent === "object" && !ent.type) { rows.push({cls:"t-dir",text:`drwxr-xr-x  2 ${currentUser} ${currentUser}   4096 Jan 01 00:00 ${f}`}); continue; }
+        if(ent && ent.type === "exec") {
+          const p = ent.perms==="x" ? "-rwxr-xr-x" : "-rw-r--r--";
+          rows.push({cls: ent.perms==="x"?"t-exec":"t-output", text:`${p}  1 ${currentUser} ${currentUser}    256 Jan 01 00:00 ${f}`});
         } else {
-          lines.push(`-rw-r--r--  1 ${currentUser} ${currentUser}     ${String(entry||"").length.toString().padStart(3)} Jan 01 00:00 ${f}`);
+          rows.push(`-rw-r--r--  1 ${currentUser} ${currentUser}   ${String(ent||"").length.toString().padStart(4)} Jan 01 00:00 ${f}`);
         }
       }
-      return lines;
+      return rows;
     }
-
-    // Color-coded output
-    const parts = files.filter(f => f !== "." && f !== "..").map(f => {
-      const entry = dir[f];
-      if (typeof entry === "object" && !entry.type) return { cls: "t-dir", text: f + "/" };
-      if (entry && entry.type === "exec") return { cls: "t-exec", text: f + "*" };
+    const parts = files.filter(f=>f!=="."&&f!=="..").map(f => {
+      const e = dir[f];
+      if(typeof e==="object"&&!e.type) return {cls:"t-dir",text:f+"/"};
+      if(e&&e.type==="exec") return {cls:"t-exec",text:f+"*"};
       return f;
     });
-    return parts.length ? parts : "(vacío)";
+    return parts.length ? parts : "(directorio vacío)";
   },
 
   cd: (args) => {
-    let target = args[0] || "~";
-    if (target === "~") { currentPath = ["home", currentUser]; updatePrompt(); return null; }
-    if (target === "..") {
-      if (currentPath.length > 1) { currentPath.pop(); updatePrompt(); }
-      return null;
+    let t = args[0] || "~";
+    if(t==="~") { currentPath=[currentUser==="admin"?["home","admin"]:["home","student"]].flat(); currentPath=["home",currentUser]; updatePrompt(); return null; }
+    if(t==="..") { if(currentPath.length>1) currentPath.pop(); updatePrompt(); return null; }
+    if(t.startsWith("/")) {
+      const parts = t.split("/").filter(Boolean);
+      let c = getEnvForLevel(currentLevelData);
+      for(const p of parts){ if(!c||!c[p]||typeof c[p]!=="object"||c[p].type) return `cd: ${t}: No existe o no es un directorio`; c=c[p]; }
+      currentPath=parts; updatePrompt(); return null;
     }
-    // absolute path
-    if (target.startsWith("/")) {
-      const parts = target.split("/").filter(Boolean);
-      let c = environments[currentLevelData];
-      for (const p of parts) {
-        if (!c || !c[p] || typeof c[p] !== "object" || c[p].type) return `cd: ${target}: No existe o no es un directorio`;
-        c = c[p];
-      }
-      currentPath = parts;
-      updatePrompt();
-      return null;
+    // handle paths like inhere/subfolder/deep
+    const segs = t.split("/").filter(Boolean);
+    let cur = getDir(currentPath);
+    const newPath = [...currentPath];
+    for(const seg of segs) {
+      if(!cur||!cur[seg]||typeof cur[seg]!=="object"||cur[seg].type) return `cd: ${t}: No existe o no es un directorio`;
+      cur=cur[seg]; newPath.push(seg);
     }
-    const dir = getDir(currentPath);
-    if (dir && dir[target] && typeof dir[target] === "object" && !dir[target].type) {
-      currentPath.push(target);
-      updatePrompt();
-      return null;
-    }
-    return `cd: ${target}: No existe o no es un directorio`;
+    currentPath=newPath; updatePrompt(); return null;
   },
 
   cat: (args) => {
-    if (!args[0]) return "cat: falta operando\nUso: cat <archivo>";
-    
-    // join all args in case filename has spaces (after quote-stripping)
+    if(!args[0]) return "cat: falta operando. Uso: cat <archivo>";
     let target = args.join(" ");
-    
-    // Handle ./-  notation
-    if (target === "./-") target = "-";
-    // Handle path-style: strip leading ./
-    if (target.startsWith("./")) target = target.slice(2);
-
+    if(target==="./-") target="-";
+    if(target.startsWith("./")) target=target.slice(2);
     const dir = getDir(currentPath);
-    if (!dir) return "cat: directorio no accesible";
+    if(!dir) return "cat: directorio no accesible";
     const file = dir[target];
-    if (file === undefined) return `cat: ${target}: No existe ese archivo`;
-    if (typeof file === "object" && !file.type) return `cat: ${target}: Es un directorio`;
-    if (file && file.type === "exec") {
-      if (file.perms === "x") return "ELF binary — no legible como texto. Usa ./" + target + " para ejecutarlo.";
-      return "Binario no legible. Usa chmod +x para dar permisos y luego ejecútalo.";
+    if(file===undefined) return `cat: ${target}: No existe ese archivo`;
+    if(typeof file==="object"&&!file.type) return `cat: ${target}: Es un directorio`;
+    if(file&&file.type==="exec"){
+      return file.perms==="x"
+        ? "ELF binary — no legible. Ejecuta con: ./" + target
+        : "Binario sin permisos de ejecución. Usa chmod +x primero.";
     }
     const content = String(file);
-    // Highlight flags in output
-    if (content.includes("FLAG{")) return [{ cls: "t-flag", text: content }];
+    if(content.includes("FLAG{")) return [{cls:"t-flag",text:content}];
     return content;
   },
 
   grep: (args) => {
-    if (args.length < 2) return "Uso: grep <patrón> <archivo>";
-    const pattern = args[0];
-    const filename = args.slice(1).join(" ");
+    if(args.length < 2) return "Uso: grep <patrón> <archivo>";
+    // support: grep pattern file  OR  grep -i pattern file (ignore -i flag)
+    let pattern = args[0], fileArgs = args.slice(1);
+    if(pattern==="-i"||pattern==="-n") { pattern=args[1]; fileArgs=args.slice(2); }
+    const filename = fileArgs.join(" ");
     const dir = getDir(currentPath);
-    const file = dir && dir[filename];
-    if (!file) return `grep: ${filename}: No existe ese archivo`;
-    if (typeof file === "object") return "";
-    const lines = String(file).split("\n").filter(l => l.includes(pattern));
-    if (!lines.length) return "";
-    // Highlight matches
-    return lines.map(line => {
-      if (line.includes("FLAG{")) return { cls: "t-flag", text: line };
-      return line;
-    });
+    const file = dir&&dir[filename];
+    if(!file) return `grep: ${filename}: No existe ese archivo`;
+    if(typeof file==="object") return "";
+    const lines = String(file).split("\n").filter(l=>l.toLowerCase().includes(pattern.toLowerCase()));
+    if(!lines.length) return "";
+    return lines.map(l => l.includes("FLAG{") ? {cls:"t-flag",text:l} : l);
   },
 
   base64: (args) => {
-    if (!args.includes("-d")) return "Uso: base64 -d <archivo>";
+    if(!args.includes("-d")) return "Uso: base64 -d <archivo>";
     const idx = args.indexOf("-d");
-    const filename = args.slice(idx + 1).join(" ");
-    if (!filename) return "Uso: base64 -d <archivo>";
+    const filename = args.slice(idx+1).join(" ");
+    if(!filename) return "Uso: base64 -d <archivo>";
     const dir = getDir(currentPath);
-    const file = dir && dir[filename];
-    if (!file) return `base64: ${filename}: No existe ese archivo`;
+    const file = dir&&dir[filename];
+    if(!file) return `base64: ${filename}: No existe ese archivo`;
     try {
-      const decoded = atob(String(file).trim());
-      if (decoded.includes("FLAG{")) return [{ cls: "t-flag", text: decoded }];
-      return decoded;
-    } catch { return "base64: error al decodificar — ¿el archivo tiene contenido base64 válido?"; }
+      const dec = atob(String(file).trim());
+      if(dec.includes("FLAG{")) return [{cls:"t-flag",text:dec}];
+      return dec;
+    } catch { return "base64: error al decodificar. ¿El archivo tiene contenido base64 válido?"; }
   },
 
   rev: (args) => {
     const filename = args.join(" ");
-    if (!filename) return "Uso: rev <archivo>";
+    if(!filename) return "Uso: rev <archivo>";
     const dir = getDir(currentPath);
-    const file = dir && dir[filename];
-    if (!file) return `rev: ${filename}: No existe ese archivo`;
-    const reversed = String(file).split("").reverse().join("");
-    if (reversed.includes("FLAG{")) return [{ cls: "t-flag", text: reversed }];
-    return reversed;
+    const file = dir&&dir[filename];
+    if(file===undefined) return `rev: ${filename}: No existe ese archivo`;
+    const lines = String(file).split("\n").map(l=>l.split("").reverse().join(""));
+    const result = lines.join("\n");
+    if(result.includes("FLAG{")) {
+      return lines.map(l => l.includes("FLAG{") ? {cls:"t-flag",text:l} : l);
+    }
+    return result;
   },
 
   chmod: (args) => {
-    if (args[0] !== "+x" || !args[1]) return "Uso: chmod +x <archivo>";
+    if(args[0]!=="+x"||!args[1]) return "Uso: chmod +x <archivo>";
     const filename = args.slice(1).join(" ");
     const dir = getDir(currentPath);
-    if (!dir) return "chmod: error de directorio";
+    if(!dir) return "chmod: error de directorio";
     const file = dir[filename];
-    if (!file) return `chmod: ${filename}: No existe ese archivo`;
-    if (typeof file === "object" && file.type === "exec") {
-      file.perms = "x";
-      return `Permisos actualizados. Ahora puedes ejecutar: ./${filename}`;
+    if(!file) return `chmod: ${filename}: No existe ese archivo`;
+    if(typeof file==="object"&&file.type==="exec") {
+      file.perms="x";
+      return `Permisos actualizados: ${filename} ahora es ejecutable. Usa: ./${filename}`;
     }
-    return `chmod: ${filename}: no es un ejecutable`;
+    return `chmod: ${filename}: no aplica`;
   },
 
   env: () => {
-    const lines = Object.entries(envVars).map(([k, v]) => {
-      if (v.includes("FLAG{")) return { cls: "t-flag", text: `${k}=${v}` };
-      return `${k}=${v}`;
-    });
-    return lines.length ? lines : "No hay variables de entorno";
+    const lines = Object.entries(envVars).map(([k,v]) =>
+      v.includes("FLAG{") ? {cls:"t-flag",text:`${k}=${v}`} : `${k}=${v}`
+    );
+    return lines.length ? lines : "No hay variables de entorno definidas";
   },
 
   su: (args) => {
-    const targetUser = args[0];
-    if (!targetUser) return "Uso: su <usuario>";
-    if (targetUser === "admin" && currentLevelData === 13) {
-      const dir = environments[13].home.student;
-      const pass = dir["pass.txt"];
-      currentUser = "admin";
-      currentPath = ["home", "admin"];
-      updatePrompt();
-      return [
-        { cls: "t-system", text: `Contraseña: ${pass}` },
-        { cls: "t-success", text: `Sesión iniciada como admin.` }
-      ];
+    const tUser = args[0];
+    if(!tUser) return "Uso: su <usuario>";
+    if(tUser==="admin"&&currentLevelData===13) {
+      currentUser="admin"; currentPath=["home","admin"]; updatePrompt();
+      return [{cls:"t-system",text:"Contraseña aceptada."},{cls:"t-success",text:`Sesión iniciada como admin@ctf.`}];
     }
-    if (targetUser === "root") return "su: autenticación fallida. Acceso denegado.";
-    return `su: ${targetUser}: autenticación fallida`;
+    if(tUser==="root") return "su: Permiso denegado.";
+    return `su: autenticación fallida para '${tUser}'`;
   },
 
   ssh: (args) => {
-    if (!args[0]) return "Uso: ssh usuario@host";
-    if (args[0] === "admin@192.168.1.100" && currentLevelData === 14) {
+    if(!args[0]) return "Uso: ssh usuario@host";
+    const hardIp = "192.168.1.100";
+    if((args[0]==="admin@192.168.1.100"||args[0]==="admin@"+hardIp)&&currentLevelData===14){
       return [
-        { cls: "t-system", text: "Connecting to 192.168.1.100..." },
-        { cls: "t-system", text: "admin@192.168.1.100's password: ●●●●●●" },
-        { cls: "t-success", text: "Welcome to Ubuntu 22.04 LTS" },
-        { cls: "t-flag", text: "FLAG{conexion_ssh_exitosa}" }
+        {cls:"t-system",text:"Conectando con 192.168.1.100 (admin)..."},
+        {cls:"t-system",text:"Autenticando... OK"},
+        {cls:"t-success",text:"Bienvenido al servidor CTF."},
+        {cls:"t-flag",text:"FLAG{conexion_ssh_exitosa}"}
       ];
     }
-    return [
-      { cls: "t-error", text: `ssh: connect to host ${args[0]} port 22: Connection refused` }
-    ];
+    return [{cls:"t-error",text:`ssh: connect to host ${args[0].split("@")[1]||args[0]} port 22: Connection refused`}];
   },
 
   nc: (args) => {
-    if (args.length < 2) return "Uso: nc <host> <puerto>";
-    if (args[0] === "localhost" && args[1] === "3000" && currentLevelData === 15) {
+    if(args.length<2) return "Uso: nc <host> <puerto>";
+    if(args[0]==="localhost"&&args[1]==="3000"&&currentLevelData===15){
       return [
-        { cls: "t-system", text: "Conectado a localhost puerto 3000." },
-        { cls: "t-system", text: "Servidor CTF v1.0 — Bienvenido." },
-        { cls: "t-flag", text: "FLAG{netcat_master}" }
+        {cls:"t-system",text:"Conectado a localhost puerto 3000."},
+        {cls:"t-system",text:"CTF Server v1.0 — Autenticado."},
+        {cls:"t-flag",text:"FLAG{netcat_master}"}
       ];
     }
     return `nc: connect to ${args[0]} port ${args[1]}: Connection refused`;
@@ -873,69 +760,45 @@ const commands = {
 
 function executeCommand(input) {
   const trimmed = input.trim();
-  if (!trimmed) return null;
+  if(!trimmed) return null;
+  const parts = trimmed.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g);
+  if(!parts) return null;
+  const tokens = parts.map(a=>a.replace(/^["']|["']$/g,""));
+  const cmd = tokens[0];
+  const args = tokens.slice(1);
 
-  // Parse respecting quotes
-  const argsMatch = trimmed.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g);
-  if (!argsMatch) return null;
-  const parts = argsMatch.map(a => a.replace(/^["']|["']$/g, ''));
-  const cmd = parts[0];
-  const args = parts.slice(1);
-
-  // Execute scripts
-  if (cmd.startsWith("./")) {
-    const scriptName = cmd.slice(2);
+  if(cmd.startsWith("./")) {
+    const name = cmd.slice(2);
     const dir = getDir(currentPath);
-    const file = dir && dir[scriptName];
-    if (!file) return `bash: ${cmd}: No existe ese archivo o directorio`;
-    if (typeof file !== "object" || file.type !== "exec") return `bash: ${cmd}: No es ejecutable`;
-    if (file.perms !== "x") return `bash: ${cmd}: Permiso denegado. Usa: chmod +x ${scriptName}`;
-    if (file.content.includes("FLAG{")) return [{ cls: "t-flag", text: file.content }];
+    const file = dir&&dir[name];
+    if(!file) return `bash: ${cmd}: No existe ese archivo o directorio`;
+    if(typeof file!=="object"||file.type!=="exec") return `bash: ${cmd}: No es ejecutable`;
+    if(file.perms!=="x") return `bash: ${cmd}: Permiso denegado. Primero: chmod +x ${name}`;
+    if(file.content.includes("FLAG{")) return [{cls:"t-flag",text:file.content}];
     return file.content;
   }
 
-  if (commands[cmd]) return commands[cmd](args);
+  if(commands[cmd]) return commands[cmd](args);
 
-  // Common mistakes / helpful suggestions
-  if (cmd === "cat" && args[0] && args[0].includes(" ") && !input.includes('"')) {
-    return `cat: No existe '${args[0]}'. Si el nombre tiene espacios, usa comillas: cat "${args.join(" ")}"`;
-  }
-  if (["python", "python3", "bash", "sh", "nano", "vim", "vi", "man", "apt", "sudo"].includes(cmd)) {
-    return `${cmd}: comando no disponible en este entorno simulado. Usa 'help' para ver los comandos.`;
-  }
-  if (cmd === "dir") return `¿Quisiste decir 'ls'? Este es Linux, no Windows 😄`;
-  if (cmd === "type") return `¿Quisiste decir 'cat'? Usa cat para leer archivos.`;
+  // Friendly errors
+  if(["python","python3","bash","sh","nano","vim","vi","man","apt","sudo","find","locate"].includes(cmd))
+    return `${cmd}: no disponible en este entorno. Usa 'help' para ver los comandos.`;
+  if(cmd==="dir") return "¿Quisiste decir 'ls'? Este es Linux.";
+  if(cmd==="type"||cmd==="more"||cmd==="less") return `¿Quisiste decir 'cat'?`;
+  if(cmd==="exit"||cmd==="logout") return "No puedes salir — el CTF te atrapa. 😄";
 
-  return `${cmd}: orden no encontrada. Escribe 'help' para ver los comandos disponibles.`;
+  return `${cmd}: orden no encontrada. Escribe 'help' para ver los comandos.`;
 }
 
-/* ========== STATE ========== */
-let currentLevel = 0;
-let userXP = 0;
-let hintVisible = false;
-let completedLevels = new Set();
-
-/* ========== UI ========== */
+/* ======== UI / RENDER ======== */
 function updatePrompt() {
   const path = getPathString();
-  const promptText = `${currentUser}@ctf:${path}$`;
-  document.getElementById("prompt-display").textContent = promptText;
+  const txt = `${currentUser}@ctf:${path}$`;
+  document.getElementById("prompt-display").textContent = txt;
   document.getElementById("term-title").textContent = `${currentUser}@ctf: ${path}`;
 }
 
-function buildLevelsList() {
-  const list = document.getElementById("levels-list");
-  list.innerHTML = "";
-  levels.forEach((lv, i) => {
-    const div = document.createElement("div");
-    div.className = "level-item" + (completedLevels.has(i) ? " completed" : i === currentLevel ? " active" : " locked");
-    div.id = "level-item-" + i;
-    div.innerHTML = `<div class="level-dot"></div><span class="level-name">${lv.title}: ${lv.name}</span>${completedLevels.has(i) ? '<span class="level-check">✓</span>' : ''}`;
-    list.appendChild(div);
-  });
-}
-
-function printLine(text, cls = "t-output") {
+function printLine(text, cls="t-output") {
   const out = document.getElementById("terminal-output");
   const div = document.createElement("div");
   div.className = "t-line " + cls;
@@ -945,36 +808,31 @@ function printLine(text, cls = "t-output") {
 }
 
 function printLines(result) {
-  if (result === null || result === undefined) return;
+  if(result===null||result===undefined) return;
   const items = Array.isArray(result) ? result : [result];
-  for (const item of items) {
-    if (typeof item === "string") {
-      item.split("\n").forEach(line => printLine(line, "t-output"));
-    } else if (typeof item === "object" && item.cls) {
-      item.text.split("\n").forEach(line => printLine(line, item.cls));
-    }
+  for(const item of items) {
+    if(typeof item==="string") item.split("\n").forEach(l=>printLine(l,"t-output"));
+    else if(item&&item.cls) item.text.split("\n").forEach(l=>printLine(l,item.cls));
   }
 }
 
-function printCommandLine(input) {
+function printCommandLine(val) {
   const out = document.getElementById("terminal-output");
   const div = document.createElement("div");
   div.className = "t-line";
-  div.innerHTML = `<span class="t-prompt">${document.getElementById("prompt-display").textContent}</span> <span class="t-input">${escapeHtml(input)}</span>`;
+  div.innerHTML = `<span class="t-prompt">${esc(document.getElementById("prompt-display").textContent)}</span> <span class="t-input">${esc(val)}</span>`;
   out.appendChild(div);
   out.scrollTop = out.scrollHeight;
 }
 
-function escapeHtml(str) {
-  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-}
+function esc(s) { return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
-function showNotification(msg, type = "success") {
+function showNotification(msg, type="success") {
   const el = document.getElementById("notification");
-  el.style.borderLeftColor = type === "success" ? "var(--green)" : type === "error" ? "var(--red)" : "var(--yellow)";
+  el.style.borderLeftColor = type==="success"?"var(--accent)":type==="error"?"var(--red)":"var(--accent3)";
   el.textContent = msg;
   el.classList.add("show");
-  setTimeout(() => el.classList.remove("show"), 3500);
+  setTimeout(()=>el.classList.remove("show"), 3500);
 }
 
 function toggleHint() {
@@ -982,29 +840,120 @@ function toggleHint() {
   const box = document.getElementById("hint-box");
   const btn = document.getElementById("btn-hint");
   box.classList.toggle("visible", hintVisible);
-  btn.textContent = (hintVisible ? "▾ OCULTAR PISTA" : "▸ MOSTRAR PISTA");
+  box.className = "hint-box" + (hintVisible?" visible":"") + (mode==="hard"?" hard-hint":"");
+  btn.textContent = hintVisible ? "▾ OCULTAR PISTA" : "▸ MOSTRAR PISTA";
 }
 
 function flashSuccess() {
   const el = document.createElement("div");
-  el.className = "flag-flash";
+  el.className = "flag-flash " + mode;
   document.body.appendChild(el);
-  setTimeout(() => el.remove(), 900);
+  setTimeout(()=>el.remove(), 900);
 }
 
+/* ======== PROGRESS BARS ======== */
+function updateProgress() {
+  const stdPct = (completedStd.size/TOTAL)*100;
+  const hardPct = (completedHard.size/TOTAL)*100;
+  document.getElementById("prog-std").style.width = stdPct+"%";
+  document.getElementById("prog-hard").style.width = hardPct+"%";
+  document.getElementById("prog-std-count").textContent = completedStd.size+"/"+TOTAL;
+  document.getElementById("prog-hard-count").textContent = completedHard.size+"/"+TOTAL;
+  document.getElementById("xp-bar-std").style.width = (xpStd/(TOTAL*XP_STD)*100)+"%";
+  document.getElementById("xp-bar-hard").style.width = (xpHard/(TOTAL*XP_HARD)*100)+"%";
+  document.getElementById("xp-val-std").textContent = xpStd+" XP";
+  document.getElementById("xp-val-hard").textContent = xpHard+" XP";
+}
+
+/* ======== LEVEL LIST ======== */
+function buildLevelsList() {
+  const list = document.getElementById("levels-list");
+  list.innerHTML = "";
+  getLevels().forEach((lv, i) => {
+    const done_s = completedStd.has(i);
+    const done_h = completedHard.has(i);
+    const isActive = i === currentLevel;
+    let cls = "level-item";
+    if(isActive) cls += " active";
+    else if(done_s&&done_h) cls += " completed-both";
+    else if(done_s&&mode==="std") cls += " completed-std";
+    else if(done_h&&mode==="hard") cls += " completed-hard";
+    else if(done_s) cls += " completed-std";
+    else cls += " locked";
+
+    const badges = (done_s?"<span class='lvl-badge s'>S</span>":"") + (done_h?"<span class='lvl-badge h'>A</span>":"");
+    const div = document.createElement("div");
+    div.className = cls;
+    div.id = "level-item-"+i;
+    div.innerHTML = `<div class="level-dot"></div><span class="level-name">${lv.title}</span><div class="level-badges">${badges}</div>`;
+    list.appendChild(div);
+  });
+  document.getElementById("levels-list").querySelector("#level-item-"+currentLevel)?.scrollIntoView({block:"nearest"});
+}
+
+/* ======== TIMER ======== */
+function startTimer() {
+  clearInterval(timerInterval);
+  levelStartTime = Date.now();
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+  const elapsed = Math.floor((Date.now() - sessionStart) / 1000);
+  const m = Math.floor(elapsed/60).toString().padStart(2,"0");
+  const s = (elapsed%60).toString().padStart(2,"0");
+  const td = document.getElementById("timer-display");
+  td.textContent = m+":"+s;
+  td.className = "timer" + (elapsed>600?" danger": elapsed>300?" warn":"");
+}
+
+/* ======== FLAGS LOG ======== */
+function openFlagsModal() {
+  const list = document.getElementById("flags-list");
+  if(flagsLog.length === 0) {
+    list.innerHTML = "<div class='empty-log'>No has capturado ningún flag aún.</div>";
+  } else {
+    list.innerHTML = "";
+    [...flagsLog].reverse().forEach(entry => {
+      const div = document.createElement("div");
+      div.className = "flag-entry flag-entry-diff-" + entry.mode;
+      div.innerHTML = `
+        <div class="flag-entry-flag">${esc(entry.flag)}</div>
+        <div class="flag-entry-meta">${entry.levelTitle} — ${entry.modeName} — ${entry.time}s para resolver</div>`;
+      list.appendChild(div);
+    });
+  }
+  document.getElementById("flags-modal").classList.add("open");
+}
+function closeFlagsModal() { document.getElementById("flags-modal").classList.remove("open"); }
+
+/* ======== STREAK ======== */
+function updateStreak(increment) {
+  if(increment) { streak++; maxStreak = Math.max(maxStreak, streak); }
+  else streak = 0;
+  const el = document.getElementById("streak-display");
+  if(streak >= 2) {
+    el.textContent = "🔥 x"+streak;
+    el.style.display = "inline";
+  } else {
+    el.style.display = "none";
+  }
+}
+
+/* ======== LOAD LEVEL ======== */
 function loadLevel(idx) {
-  if (idx >= levels.length) {
-    // CTF complete
-    document.getElementById("final-xp").textContent = userXP + " XP";
-    document.getElementById("completion-overlay").style.display = "flex";
-    return;
+  const levels = getLevels();
+  if(idx >= levels.length) {
+    showCompletion(); return;
   }
   currentLevel = idx;
   initEnvironment(idx);
   updatePrompt();
+  startTimer();
 
   const lv = levels[idx];
-  document.getElementById("level-badge").textContent = lv.title.toUpperCase();
+  document.getElementById("diff-badge").textContent = mode==="std" ? "ESTÁNDAR" : "AVANZADO ⚡";
+  document.getElementById("diff-badge").className = "diff-badge " + mode;
   document.getElementById("level-title").textContent = lv.name;
   document.getElementById("level-obj").textContent = lv.obj;
   document.getElementById("hint-box").textContent = lv.hint;
@@ -1015,153 +964,209 @@ function loadLevel(idx) {
   document.getElementById("btn-hint").textContent = "▸ MOSTRAR PISTA";
 
   buildLevelsList();
-  document.getElementById("levels-list").querySelector("#level-item-" + idx)?.scrollIntoView({ block: "nearest" });
+  updateProgress();
 
-  // Print level banner
+  // Banner
   const out = document.getElementById("terminal-output");
-  const sep = document.createElement("div");
-  sep.className = "t-line t-info";
-  sep.innerHTML = `\n┌─── ${lv.title.toUpperCase()}: ${lv.name} ${"─".repeat(Math.max(0, 40 - lv.name.length))}┐\n│ Objetivo: ${lv.obj}\n└${"─".repeat(52)}┘`;
-  out.appendChild(sep);
+  const modeTag = mode==="hard" ? " ⚡ AVANZADO" : "";
+  const bannerCls = mode==="hard" ? "t-hard" : "t-info";
+  const banner = document.createElement("div");
+  banner.className = "t-line " + bannerCls;
+  const dash = "─".repeat(Math.max(0,44-lv.name.length));
+  banner.textContent = `\n╔═══ ${lv.title.toUpperCase()}${modeTag}: ${lv.name} ${dash}╗\n║ Objetivo: ${lv.obj}\n╚${"═".repeat(56)}╝`;
+  out.appendChild(banner);
   out.scrollTop = out.scrollHeight;
 }
 
+/* ======== ADVANCE LEVEL ======== */
 function advanceLevel() {
-  completedLevels.add(currentLevel);
-  userXP += XP_PER_LEVEL;
-  const pct = (userXP / (TOTAL_LEVELS * XP_PER_LEVEL)) * 100;
-  document.getElementById("xp-bar-fill").style.width = pct + "%";
-  document.getElementById("xp-label").textContent = userXP + " / " + (TOTAL_LEVELS * XP_PER_LEVEL);
+  const timeSpent = Math.floor((Date.now() - levelStartTime) / 1000);
+  const lv = getLevels()[currentLevel];
+  const completed = getCompletedSet();
+
+  completed.add(currentLevel);
+  if(mode==="std") xpStd += XP_STD;
+  else xpHard += XP_HARD;
+
+  flagsLog.push({ flag: lv.flag, levelTitle: lv.title, modeName: mode==="std"?"Estándar":"Avanzado", mode, time: timeSpent });
+  updateStreak(true);
+  updateProgress();
   flashSuccess();
-  showNotification("✓ FLAG correcta! +" + XP_PER_LEVEL + " XP", "success");
-  setTimeout(() => loadLevel(currentLevel + 1), 1200);
+
+  const xpGained = getXpPerLevel();
+  showNotification(`✓ FLAG! +${xpGained} XP ${streak>=2?"🔥x"+streak:""}`, "success");
+  setTimeout(()=>loadLevel(currentLevel+1), 1300);
 }
 
 function saveProgress(flag) {
   printLine("", "t-system");
-  printLine("[ SISTEMA ] Flag detectada. Guardando progreso...", "t-system");
+  printLine(`[ SISTEMA ] Flag detectada en modo ${mode==="hard"?"AVANZADO":"ESTÁNDAR"}. Guardando...`, "t-system");
   fetch(BACKEND_URL, {
-    method: "POST",
-    body: JSON.stringify({ user: "student", level: currentLevel, flag })
+    method:"POST",
+    body: JSON.stringify({ user:"student", level:currentLevel, flag, mode })
   })
-  .then(r => r.text())
-  .then(() => advanceLevel())
-  .catch(() => {
-    printLine("[ SISTEMA ] Modo offline — avanzando localmente.", "t-system");
-    advanceLevel();
-  });
+  .then(r=>r.text()).then(()=>advanceLevel())
+  .catch(()=>{ printLine("[ SISTEMA ] Modo offline — avanzando localmente.","t-system"); advanceLevel(); });
 }
 
 function checkOutput(output) {
-  const flag = levels[currentLevel]?.flag;
-  if (!flag) return;
-  const check = (s) => typeof s === "string" && s.includes(flag);
+  const flag = getLevels()[currentLevel]?.flag;
+  if(!flag) return;
+  const check = s => typeof s==="string"&&s.includes(flag);
   const found = Array.isArray(output)
-    ? output.some(item => check(typeof item === "object" ? item.text : item))
+    ? output.some(item => check(typeof item==="object" ? item.text : item))
     : check(String(output));
-  if (found) saveProgress(flag);
+  if(found) saveProgress(flag);
 }
 
-/* ========== INPUT HANDLING ========== */
-const input = document.getElementById("terminal-input");
+/* ======== MODE SWITCH ======== */
+function switchMode(newMode) {
+  if(mode===newMode) return;
+  mode = newMode;
+  const isHard = mode==="hard";
+  document.body.classList.toggle("hard-mode", isHard);
+  document.getElementById("btn-std").className = "mode-btn" + (isHard?"":" active-std");
+  document.getElementById("btn-hard").className = "mode-btn" + (isHard?" active-hard":"");
+  document.getElementById("terminal-output").innerHTML = "";
 
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    const val = input.value;
-    input.value = "";
-    historyIndex = -1;
-    if (!val.trim()) return;
+  // Show mode switch message
+  const intro = isHard
+    ? [{cls:"t-hard",text:"\n⚡ MODO AVANZADO ACTIVADO ⚡"},
+       {cls:"t-hard",text:"Las flags son las mismas pero los caminos son más difíciles."},
+       {cls:"t-hard",text:"Sin ayuda automática. Cada flag vale 200 XP.\n"}]
+    : [{cls:"t-success",text:"\n✓ MODO ESTÁNDAR"},
+       {cls:"t-success",text:"Bienvenido de vuelta al modo normal.\n"}];
+  printLines(intro);
+
+  loadLevel(currentLevel);
+}
+
+/* ======== COMPLETION ======== */
+function showCompletion() {
+  clearInterval(timerInterval);
+  const totalSec = Math.floor((Date.now()-sessionStart)/1000);
+  const m = Math.floor(totalSec/60).toString().padStart(2,"0");
+  const s = (totalSec%60).toString().padStart(2,"0");
+  document.getElementById("comp-xp").textContent = (xpStd+xpHard);
+  document.getElementById("comp-time").textContent = m+":"+s;
+  document.getElementById("comp-streak").textContent = maxStreak;
+  document.getElementById("comp-flags").textContent = flagsLog.length;
+  const both = completedStd.size===TOTAL&&completedHard.size===TOTAL;
+  document.getElementById("comp-title").textContent = both ? "[ MAESTRO CTF ]" : "[ MODO COMPLETADO ]";
+  document.getElementById("comp-subtitle").textContent = both
+    ? "¡Has completado AMBOS modos! Eres un maestro de la terminal Linux."
+    : `Has completado el modo ${mode==="std"?"ESTÁNDAR":"AVANZADO"}. ¡Intenta el otro modo!`;
+  document.getElementById("comp-mode-msg").textContent = both ? "" : (mode==="std"?"Prueba el modo AVANZADO para el doble de XP.":"¡El modo ESTÁNDAR también está disponible!");
+  const overlay = document.getElementById("completion-overlay");
+  overlay.style.display = "flex";
+}
+
+function restartAll() {
+  completedStd.clear(); completedHard.clear();
+  xpStd=0; xpHard=0; flagsLog=[]; streak=0; maxStreak=0;
+  sessionStart=Date.now();
+  updateProgress();
+  updateStreak(false);
+  document.getElementById("completion-overlay").style.display="none";
+  document.getElementById("terminal-output").innerHTML="";
+  loadLevel(0);
+  printLine("Sistema reiniciado. ¡Buena suerte!","t-info");
+}
+
+/* ======== INPUT HANDLING ======== */
+const termInput = document.getElementById("terminal-input");
+
+termInput.addEventListener("keydown", (e) => {
+  if(e.key==="Enter") {
+    const val = termInput.value;
+    termInput.value=""; historyIndex=-1;
+    if(!val.trim()) return;
     commandHistory.unshift(val);
-    if (commandHistory.length > 100) commandHistory.pop();
+    if(commandHistory.length>200) commandHistory.pop();
     printCommandLine(val);
     const result = executeCommand(val);
     printLines(result);
     checkOutput(result);
-  } else if (e.key === "ArrowUp") {
+  } else if(e.key==="ArrowUp") {
     e.preventDefault();
-    if (historyIndex < commandHistory.length - 1) {
+    if(historyIndex<commandHistory.length-1) {
       historyIndex++;
-      input.value = commandHistory[historyIndex];
-      setTimeout(() => input.setSelectionRange(input.value.length, input.value.length), 0);
+      termInput.value=commandHistory[historyIndex];
+      setTimeout(()=>termInput.setSelectionRange(termInput.value.length,termInput.value.length),0);
     }
-  } else if (e.key === "ArrowDown") {
+  } else if(e.key==="ArrowDown") {
     e.preventDefault();
-    if (historyIndex > 0) {
-      historyIndex--;
-      input.value = commandHistory[historyIndex];
-    } else {
-      historyIndex = -1;
-      input.value = "";
-    }
-  } else if (e.key === "Tab") {
+    if(historyIndex>0){ historyIndex--; termInput.value=commandHistory[historyIndex]; }
+    else { historyIndex=-1; termInput.value=""; }
+  } else if(e.key==="Tab") {
     e.preventDefault();
-    // Tab completion
-    const val = input.value;
+    const val = termInput.value;
     const parts = val.split(" ");
-    const partial = parts[parts.length - 1].replace(/^["']/, "");
-    if (partial) {
+    const partial = parts[parts.length-1].replace(/^["']/,"");
+    if(partial) {
       const dir = getDir(currentPath);
-      if (dir) {
-        const matches = Object.keys(dir).filter(k => k.startsWith(partial));
-        if (matches.length === 1) {
-          parts[parts.length - 1] = matches[0].includes(" ") ? `"${matches[0]}"` : matches[0];
-          input.value = parts.join(" ");
-        } else if (matches.length > 1) {
+      if(dir) {
+        const matches = Object.keys(dir).filter(k=>k.startsWith(partial));
+        if(matches.length===1) {
+          parts[parts.length-1] = matches[0].includes(" ") ? `"${matches[0]}"` : matches[0];
+          termInput.value=parts.join(" ");
+        } else if(matches.length>1) {
           printCommandLine(val);
-          printLine(matches.join("  "), "t-output");
+          printLine(matches.join("  "),"t-output");
         }
       }
     }
-  } else if (e.key === "l" && e.ctrlKey) {
+  } else if(e.ctrlKey&&e.key==="l") {
     e.preventDefault();
-    document.getElementById("terminal-output").innerHTML = "";
-  } else if (e.key === "c" && e.ctrlKey) {
+    document.getElementById("terminal-output").innerHTML="";
+  } else if(e.ctrlKey&&e.key==="c") {
     e.preventDefault();
-    printCommandLine(input.value + "^C");
-    input.value = "";
+    printCommandLine(termInput.value+"^C");
+    termInput.value="";
+    updateStreak(false);
   }
 });
 
-// Keep focus on input
-document.addEventListener("click", () => input.focus());
+document.addEventListener("click", ()=>termInput.focus());
+document.getElementById("flags-modal").addEventListener("click", e=>{ if(e.target===e.currentTarget) closeFlagsModal(); });
 
-/* ========== BOOT SEQUENCE ========== */
-const bootLines = [
-  { text: "BIOS v2.0 — Linux CTF Academy", delay: 0 },
-  { text: "Cargando kernel... ████████████ OK", delay: 120 },
-  { text: "Montando sistema de archivos... OK", delay: 240 },
-  { text: "Iniciando servicios... OK", delay: 360 },
-  { text: "Configurando entorno CTF... OK", delay: 480 },
-  { text: "Cargando niveles [16/16]... OK", delay: 600 },
-  { text: "", delay: 720 },
-  { text: "Bienvenido a Linux CTF Academy", delay: 800, cls: "color: #39d353; font-weight:700; font-size:14px" },
-  { text: "Tipo: 'help' para ver los comandos disponibles.", delay: 920 },
-];
-
+/* ======== BOOT ======== */
 function boot() {
   const overlay = document.getElementById("boot-overlay");
-  overlay.innerHTML = "";
-  bootLines.forEach(({ text, delay, cls }) => {
-    const div = document.createElement("div");
-    div.className = "boot-line";
-    div.style.animationDelay = delay + "ms";
-    if (cls) div.style.cssText += cls;
-    div.textContent = text;
+  const lines = [
+    {t:"Linux CTF Academy v2.0 — Boot sequence",d:0},
+    {t:"[  OK  ] Iniciando kernel...",d:100},
+    {t:"[  OK  ] Montando sistema de archivos...",d:200},
+    {t:"[  OK  ] Cargando niveles (STD: 16, ADV: 16)...",d:300},
+    {t:"[  OK  ] Configurando entorno CTF...",d:400},
+    {t:"[  OK  ] Iniciando monitor de flags...",d:500},
+    {t:"",d:600},
+    {t:"Bienvenido a Linux CTF Academy",d:680,bold:true},
+    {t:"Modo: ESTÁNDAR | Avanzado disponible en la barra superior",d:760},
+  ];
+  lines.forEach(({t,d,bold})=>{
+    const div=document.createElement("div");
+    div.className="boot-line";
+    div.style.animationDelay=d+"ms";
+    div.style.color=bold?"#39d353":"";
+    div.style.fontWeight=bold?"700":"";
+    div.textContent=t;
     overlay.appendChild(div);
   });
-  setTimeout(() => {
-    overlay.style.transition = "opacity 0.5s";
-    overlay.style.opacity = "0";
-    setTimeout(() => {
-      overlay.style.display = "none";
+  setTimeout(()=>{
+    overlay.style.transition="opacity 0.4s";
+    overlay.style.opacity="0";
+    setTimeout(()=>{
+      overlay.style.display="none";
+      sessionStart=Date.now();
+      startTimer();
       loadLevel(0);
-      printLine("Escribe 'help' para ver todos los comandos disponibles.", "t-info");
-      printLine("Usa ↑ ↓ para navegar el historial de comandos.", "t-info");
-      printLine("Usa TAB para autocompletar nombres de archivo.", "t-info");
-      printLine("", "t-output");
-      input.focus();
-    }, 500);
-  }, 1400);
+      printLine("Escribe 'help' para ver los comandos. Usa ↑↓ para el historial, TAB para autocompletar.","t-info");
+      printLine("Cambia a modo AVANZADO con el botón en la barra superior para el doble de XP.","t-info");
+      printLine("","t-output");
+      termInput.focus();
+    },400);
+  },1200);
 }
 
 boot();

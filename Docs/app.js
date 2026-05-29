@@ -26,7 +26,7 @@ function loadLevel(levelIndex) {
     if (!levels[levelIndex]) return printToTerminal("\n¡CTF COMPLETADO!");
     
     currentLevel = levelIndex;
-    initEnvironment(levelIndex); // Carga el sistema de archivos del nivel
+    initEnvironment(levelIndex);
     document.getElementById("prompt-text").textContent = "student@ctf:~$";
     
     const level = levels[levelIndex];
@@ -42,25 +42,25 @@ function showHint() {
     document.getElementById(`hint-text`).classList.remove("hidden");
 }
 
-async function saveProgress(flag) {
-    printToTerminal("[SISTEMA] Verificando flag online...", false);
-    try {
-        await fetch(BACKEND_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify({ user: currentUser, level: currentLevel, flag: flag })
-        });
-        
+function saveProgress(flag) {
+    printToTerminal("[SISTEMA] Verificando flag...", false);
+    
+    fetch(BACKEND_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ user: currentUser, level: currentLevel, flag: flag })
+    }).then(() => {
         userXP += 100;
         document.getElementById("xp-display").textContent = userXP;
-        printToTerminal("[SISTEMA] ¡Correcto! Progreso guardado.\n", false);
+        printToTerminal("[SISTEMA] ¡Correcto! Avanzando al siguiente nivel.\n", false);
         loadLevel(currentLevel + 1);
-        
-    } catch (error) {
-        printToTerminal("[SISTEMA] Guardado offline.\n", false);
+    }).catch((error) => {
+        userXP += 100;
+        document.getElementById("xp-display").textContent = userXP;
+        printToTerminal("[SISTEMA] Guardado local. Avanzando al siguiente nivel.\n", false);
         loadLevel(currentLevel + 1);
-    }
+    });
 }
 
 document.addEventListener('commandExecuted', (e) => {
